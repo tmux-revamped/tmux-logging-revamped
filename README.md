@@ -4,7 +4,7 @@
 
 **Capture any pane to a file: live logging, full scrollback, or a one-shot screenshot.**
 
-[![Tests](https://github.com/gufranco/tmux-logging-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/gufranco/tmux-logging-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
+[![Tests](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
 
 </div>
 
@@ -12,7 +12,7 @@
 
 Logs a tmux pane to a file. Toggle live logging on a pane, dump the entire scrollback at once, or save the visible screen. Filenames are built from the session, window, pane, and a timestamp, with every component sanitized so a session named `feature/login` never breaks the path.
 
-Built from [tmux-plugin-template](https://github.com/gufranco/tmux-plugin-template).
+Built from [tmux-plugin-template](https://github.com/tmux-revamped/tmux-plugin-template).
 
 <table>
 <tr>
@@ -40,7 +40,7 @@ All three keys are configurable.
 With [TPM](https://github.com/tmux-plugins/tpm), add to `~/.tmux.conf`:
 
 ```tmux
-set -g @plugin 'gufranco/tmux-logging-revamped'
+set -g @plugin 'tmux-revamped/tmux-logging-revamped'
 ```
 
 Press `prefix + I` to install.
