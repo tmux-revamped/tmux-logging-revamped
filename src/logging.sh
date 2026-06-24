@@ -56,7 +56,7 @@ logging_save() {
   file="$(_log_file history)"
   flags="$(_capture_flags)"
   # shellcheck disable=SC2086
-  _capture_pane ${flags} -S - -p > "${file}"
+  _capture_pane ${flags} -S - -p | logging_trim_trailing > "${file}"
   _message "saved scrollback to ${file}"
 }
 
@@ -65,7 +65,7 @@ logging_screenshot() {
   file="$(_log_file screen)"
   flags="$(_capture_flags)"
   # shellcheck disable=SC2086
-  _capture_pane ${flags} -p > "${file}"
+  _capture_pane ${flags} -p | logging_trim_trailing > "${file}"
   _message "saved screen to ${file}"
 }
 

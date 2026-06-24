@@ -36,6 +36,13 @@ logging_expand_path() {
   esac
 }
 
+# logging_trim_trailing -> copy stdin to stdout with trailing spaces and tabs
+# removed from every line, so a saved capture has no ragged right edge. The
+# bracket class is portable across BSD and GNU sed.
+logging_trim_trailing() {
+  sed 's/[[:space:]]*$//'
+}
+
 # Host-probe seams. Tests override these.
 _now_stamp() { date +%Y%m%d-%H%M%S 2>/dev/null; }
 _pipe_pane() { tmux pipe-pane "$@"; }
@@ -44,6 +51,7 @@ _capture_pane() { tmux capture-pane "$@"; }
 export -f logging_sanitize
 export -f logging_filename
 export -f logging_expand_path
+export -f logging_trim_trailing
 export -f _now_stamp
 export -f _pipe_pane
 export -f _capture_pane

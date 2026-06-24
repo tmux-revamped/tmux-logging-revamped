@@ -53,6 +53,14 @@ teardown() {
   [[ -f "${BATS_TEST_TMPDIR}/logs/tmux-main-1-0-STAMP.screen" ]]
 }
 
+@test "logging.sh - save trims trailing whitespace from the capture" {
+  _make_dir() { mkdir -p "${1}"; }
+  _capture_pane() { printf 'line one   \nline two\t\n'; }
+  run main save
+  local f="${BATS_TEST_TMPDIR}/logs/tmux-main-1-0-STAMP.history"
+  [[ "$(cat "${f}")" == $'line one\nline two' ]]
+}
+
 @test "logging.sh - color flag is added when enabled" {
   set_tmux_option "@logging_revamped_color" "1"
   [[ "$(_capture_flags)" == "-e" ]]

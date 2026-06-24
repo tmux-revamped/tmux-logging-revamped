@@ -31,6 +31,16 @@ teardown() {
   [[ "$(logging_expand_path "/abs/x")" == "/abs/x" ]]
 }
 
+@test "logging_trim_trailing strips trailing spaces and tabs per line" {
+  local out
+  out=$(printf 'foo   \nbar\twith\ttabs\t\nbaz\n' | logging_trim_trailing)
+  [[ "${out}" == $'foo\nbar\twith\ttabs\nbaz' ]]
+}
+
+@test "logging_trim_trailing keeps interior whitespace intact" {
+  [[ "$(printf 'a  b  \n' | logging_trim_trailing)" == "a  b" ]]
+}
+
 @test "logging.sh - host-probe seams are callable" {
   run _now_stamp
   true
