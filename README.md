@@ -4,7 +4,7 @@
 
 **Capture any pane to a file: live logging, full scrollback, or a one-shot screenshot.**
 
-[![Tests](https://github.com/gufranco/tmux-logging-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/gufranco/tmux-logging-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Tests](https://github.com/gufranco/tmux-logging-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/gufranco/tmux-logging-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
 
 </div>
 
