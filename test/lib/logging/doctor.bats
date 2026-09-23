@@ -37,6 +37,7 @@ teardown() {
 }
 
 @test "doctor.sh - _logging_path_writable is false for an unwritable directory" {
+  [[ "$(id -u)" -ne 0 ]] || skip "root ignores the permission bits"
   local dir="${TEST_TMPDIR}/ro"
   mkdir -p "${dir}"
   chmod 000 "${dir}"
@@ -64,6 +65,7 @@ teardown() {
 }
 
 @test "doctor.sh - logging_doctor reports an unwritable path" {
+  [[ "$(id -u)" -ne 0 ]] || skip "root ignores the permission bits"
   has_command() { return 0; }
   local dir="${TEST_TMPDIR}/ro2"
   mkdir -p "${dir}"
