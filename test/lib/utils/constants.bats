@@ -12,7 +12,14 @@ teardown() {
 }
 
 @test "constants.sh - exposes the plugin version" {
-  [[ "${LOGGING_REVAMPED_VERSION}" == "1.2.0" ]]
+  # Arrange
+  local expected="2.0.0"
+
+  # Act
+  local actual="${LOGGING_REVAMPED_VERSION}"
+
+  # Assert
+  [[ "${actual}" == "${expected}" ]]
 }
 
 @test "constants.sh - defines the shared template constants" {
