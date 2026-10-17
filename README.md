@@ -78,6 +78,15 @@ Press `prefix + I` to install.
 
 Files are named `tmux-<session>-<window>-<pane>-<timestamp>.<kind>`, for example `tmux-main-1-0-20260622-1430.history`.
 
+### Internal state
+
+The plugin manages these options itself. Do not set them.
+
+| Option | Holds |
+|--------|-------|
+| `@logging_revamped_file_<pane>` | the file a live-logged pane writes to, keyed by its pane id with every non-alphanumeric character replaced by `_`, such as `_3` for `%3`, so the live tail knows where to look |
+| `@logging_revamped_search_pattern` | the last search pattern, handed from the search prompt to the match picker popup |
+
 ## Status line
 
 Add a logging indicator to the status line. The glyph appears while the active
