@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   break the command, and one containing `#()` ran as a command; the reply is
   now handed over through a plugin option with `%%%` and never reaches a shell
   or a format.
+- Logging a whole window records each pane's file, so live tail follows those
+  panes instead of reporting them as not logged.
 
 ## [1.2.0] - 2026-06-30
 

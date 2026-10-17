@@ -580,3 +580,15 @@ EXPECTED
   # Assert
   [[ "$(cat "${BATS_TEST_TMPDIR}/msg")" == "no matches for ##(id)" ]]
 }
+
+@test "logging.sh - window records each pane's file so tail can follow it" {
+  # Arrange
+  _window_panes() { printf '%%1 main 1 0\n%%2 main 1 1\n'; }
+
+  # Act
+  run main window
+
+  # Assert
+  [[ "$(get_tmux_option "$(logging_pane_file_opt "%1")")" == "${BATS_TEST_TMPDIR}/logs/tmux-main-1-0-STAMP.log" ]] || false
+  [[ "$(get_tmux_option "$(logging_pane_file_opt "%2")")" == "${BATS_TEST_TMPDIR}/logs/tmux-main-1-1-STAMP.log" ]]
+}

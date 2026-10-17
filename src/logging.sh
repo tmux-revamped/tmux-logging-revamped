@@ -160,6 +160,7 @@ logging_window() {
     [[ -z "${id}" ]] && continue
     file="${dir}/$(logging_filename "${s}" "${w}" "${p}" "${stamp}" log)"
     _pipe_pane -t "${id}" "$(_pipe_cmd "${file}")"
+    set_tmux_option "$(logging_pane_file_opt "${id}")" "${file}"
     count=$(( count + 1 ))
   done <<< "$(_window_panes)"
   _message "logging ${count} panes in this window"
