@@ -44,6 +44,13 @@ _self_cmd() {
   printf '%s' "${cmd//"${dl}"/${edl}}"
 }
 
+_popup_cmd() {
+  local cmd hash="#"
+  cmd="$(printf '%q ' "$@")"
+  cmd="${cmd% }"
+  printf '%s' "${cmd//"${hash}"/${hash}${hash}}"
+}
+
 _prompt_template() {
   printf 'set-option -gq @logging_revamped_prompt "%%%%%%" ; run-shell "%s"' "$(_self_cmd "${1}")"
 }
@@ -158,7 +165,7 @@ logging_tail() {
     _message "this pane is not being logged"
     return 0
   fi
-  _tmux display-popup -E "tail -f -- '${file}'"
+  _tmux display-popup -E "$(_popup_cmd tail -f -- "${file}")"
 }
 
 logging_search() {
@@ -172,7 +179,7 @@ logging_search() {
     return 0
   fi
   set_tmux_option "@logging_revamped_search_pattern" "${pattern}"
-  _tmux display-popup -E "$(printf '%q pick' "${LOG_SELF}")"
+  _tmux display-popup -E "$(_popup_cmd "${LOG_SELF}" pick)"
 }
 
 logging_search_reply() {

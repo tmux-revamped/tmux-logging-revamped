@@ -154,6 +154,25 @@ teardown() {
   [[ "$(cat "${BATS_TEST_TMPDIR}/seam")" == "display-popup" ]]
 }
 
+@test "logging.sh - tail quotes a log path holding a space, a quote and a hash" {
+  # Arrange
+  _pane_var() { case "${1}" in pane_id) echo "%1" ;; esac; }
+  set_tmux_option "$(logging_pane_file_opt "%1")" "/l o/it's/#d/tmux-main.log"
+  _tmux() { printf '%s\n' "$@" >> "${BATS_TEST_TMPDIR}/seam"; }
+  local expected
+  expected="$(cat <<'EXPECTED'
+tail -f -- /l\ o/it\'s/##d/tmux-main.log
+EXPECTED
+)"
+
+  # Act
+  run main tail
+
+  # Assert
+  [[ "$(sed -n 2p "${BATS_TEST_TMPDIR}/seam")" == "-E" ]] || false
+  [[ "$(sed -n 3p "${BATS_TEST_TMPDIR}/seam")" == "${expected}" ]]
+}
+
 @test "logging.sh - search with no pattern prompts through the seam" {
   _tmux() { echo "$1" >> "${BATS_TEST_TMPDIR}/seam"; }
   run main search
@@ -179,6 +198,25 @@ teardown() {
   [[ ! -f "${BATS_TEST_TMPDIR}/fzf" ]] || false
   [[ "$(cat "${BATS_TEST_TMPDIR}/seam")" == "display-popup|-E|$(printf '%q' "${LOG_SELF}") pick|" ]] || false
   [[ "$(get_tmux_option "@logging_revamped_search_pattern")" == "needle" ]]
+}
+
+@test "logging.sh - search quotes a plugin path holding a space, a quote and a hash" {
+  # Arrange
+  LOG_SELF="/p a/it's/#x/logging.sh"
+  _grep() { printf '%s\n' "/logs/tmux-main-1-0-STAMP.history:12:the needle here"; }
+  _tmux() { printf '%s\n' "$@" >> "${BATS_TEST_TMPDIR}/seam"; }
+  local expected
+  expected="$(cat <<'EXPECTED'
+/p\ a/it\'s/##x/logging.sh pick
+EXPECTED
+)"
+
+  # Act
+  run main search needle
+
+  # Assert
+  [[ "$(sed -n 2p "${BATS_TEST_TMPDIR}/seam")" == "-E" ]] || false
+  [[ "$(sed -n 3p "${BATS_TEST_TMPDIR}/seam")" == "${expected}" ]]
 }
 
 @test "logging.sh - pick opens the chosen match in the pager at its line" {

@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The key bindings and the control menu quote the plugin path, so the plugin
   works when installed under a directory whose name contains a space or a single
   quote.
+- Live tail and log search quote the log file and plugin paths they open in a
+  popup, so a path containing a space, a single quote or a `#` no longer breaks
+  the command or gets expanded as a tmux format.
 
 ## [2.0.0] - 2026-10-17
 
