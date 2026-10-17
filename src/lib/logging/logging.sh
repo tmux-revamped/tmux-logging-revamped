@@ -103,12 +103,6 @@ logging_grep_line() {
   printf '%s' "${rest%%:*}"
 }
 
-# logging_open_cmd PAGER FILE LINE -> the command string a popup runs to open a
-# saved log at the matching line.
-logging_open_cmd() {
-  printf "%s +%s -- '%s'" "${1:-less}" "${3:-1}" "${2}"
-}
-
 # Host-probe seams. Tests override these.
 _now_stamp() { date +%Y%m%d-%H%M%S 2>/dev/null; }
 _pipe_pane() { tmux pipe-pane "$@"; }
@@ -125,7 +119,6 @@ export -f logging_strip_prompts
 export -f logging_prune_excess
 export -f logging_grep_file
 export -f logging_grep_line
-export -f logging_open_cmd
 export -f _now_stamp
 export -f _pipe_pane
 export -f _capture_pane

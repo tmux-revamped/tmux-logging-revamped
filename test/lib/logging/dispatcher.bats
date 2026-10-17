@@ -166,22 +166,69 @@ teardown() {
   [[ "$(cat "${BATS_TEST_TMPDIR}/msg")" == *"no matches for needle"* ]]
 }
 
-@test "logging.sh - search opens the chosen match in a popup" {
+@test "logging.sh - search runs the picker inside a popup instead of the run-shell job" {
+  # Arrange
   _grep() { printf '%s\n' "/logs/tmux-main-1-0-STAMP.history:12:the needle here"; }
-  _fzf() { head -1; }
-  _tmux() { echo "$*" >> "${BATS_TEST_TMPDIR}/seam"; }
+  _fzf() { echo "FZF" >> "${BATS_TEST_TMPDIR}/fzf"; }
+  _tmux() { printf '%s|' "$@" >> "${BATS_TEST_TMPDIR}/seam"; }
+
+  # Act
   run main search needle
-  [[ "$(cat "${BATS_TEST_TMPDIR}/seam")" == "display-popup"* ]]
-  [[ "$(cat "${BATS_TEST_TMPDIR}/seam")" == *"+12"* ]]
-  [[ "$(cat "${BATS_TEST_TMPDIR}/seam")" == *"tmux-main-1-0-STAMP.history"* ]]
+
+  # Assert
+  [[ ! -f "${BATS_TEST_TMPDIR}/fzf" ]] || false
+  [[ "$(cat "${BATS_TEST_TMPDIR}/seam")" == "display-popup|-E|$(printf '%q' "${LOG_SELF}") pick|" ]] || false
+  [[ "$(get_tmux_option "@logging_revamped_search_pattern")" == "needle" ]]
 }
 
-@test "logging.sh - search does nothing when the picker is cancelled" {
+@test "logging.sh - pick opens the chosen match in the pager at its line" {
+  # Arrange
+  set_tmux_option "@logging_revamped_search_pattern" "needle"
+  _grep() { printf '%s\n' "/logs/tmux-main-1-0-STAMP.history:12:the needle here"; }
+  _fzf() { head -1; }
+  _pager() { printf '%s|' "$@" >> "${BATS_TEST_TMPDIR}/pager"; }
+
+  # Act
+  run main pick
+
+  # Assert
+  [[ "$(cat "${BATS_TEST_TMPDIR}/pager")" == "less|12|/logs/tmux-main-1-0-STAMP.history|" ]]
+}
+
+@test "logging.sh - pick does nothing when the picker is cancelled" {
+  # Arrange
+  set_tmux_option "@logging_revamped_search_pattern" "needle"
   _grep() { printf '%s\n' "/logs/a.history:1:hit"; }
   _fzf() { cat >/dev/null; }
-  _tmux() { echo "RAN" >> "${BATS_TEST_TMPDIR}/seam"; }
-  run main search needle
-  [[ ! -f "${BATS_TEST_TMPDIR}/seam" ]]
+  _pager() { echo "RAN" >> "${BATS_TEST_TMPDIR}/pager"; }
+
+  # Act
+  run main pick
+
+  # Assert
+  [[ ! -f "${BATS_TEST_TMPDIR}/pager" ]]
+}
+
+@test "logging.sh - pick does nothing without a stored pattern" {
+  # Arrange
+  _grep() { echo "GREP" >> "${BATS_TEST_TMPDIR}/grep"; }
+
+  # Act
+  run main pick
+
+  # Assert
+  [[ ! -f "${BATS_TEST_TMPDIR}/grep" ]]
+}
+
+@test "logging.sh - the pager seam passes the line and file to the pager" {
+  # Arrange
+  fakepager() { printf '%s|' "$@"; }
+
+  # Act
+  run _pager fakepager 7 "/logs/a b.log"
+
+  # Assert
+  [[ "${output}" == "+7|--|/logs/a b.log|" ]]
 }
 
 @test "logging.sh - copy reports when there are no logs" {

@@ -40,6 +40,8 @@ _find_old() { find "${1}" -type f -name 'tmux-*' ! -name '*.gz' -mtime +"${2}" 2
 _remove() { rm -f -- "$@" 2>/dev/null; }
 _list_logs() { (cd "${1}" 2>/dev/null && ls -1tr -- tmux-* 2>/dev/null); }
 _clip() { tmux load-buffer -w - 2>/dev/null; }
+# shellcheck disable=SC2086
+_pager() { ${1} "+${2}" -- "${3}"; }
 
 logging_dir() {
   # shellcheck disable=SC2088 # ~ is a literal default expanded by logging_expand_path
@@ -159,18 +161,23 @@ logging_search() {
     _tmux command-prompt -p "search logs:" "run-shell \"${LOG_SELF} search '%%'\""
     return 0
   fi
-  local dir results choice file line
-  dir="$(logging_dir)"
-  results="$(_grep "${pattern}" "${dir}")"
-  if [[ -z "${results}" ]]; then
+  if [[ -z "$(_grep "${pattern}" "$(logging_dir)")" ]]; then
     _message "no matches for ${pattern}"
     return 0
   fi
+  set_tmux_option "@logging_revamped_search_pattern" "${pattern}"
+  _tmux display-popup -E "$(printf '%q pick' "${LOG_SELF}")"
+}
+
+logging_pick() {
+  local pattern results choice
+  pattern="$(get_tmux_option "@logging_revamped_search_pattern" "")"
+  [[ -z "${pattern}" ]] && return 0
+  results="$(_grep "${pattern}" "$(logging_dir)")"
+  [[ -z "${results}" ]] && return 0
   choice="$(printf '%s\n' "${results}" | _fzf)"
   [[ -z "${choice}" ]] && return 0
-  file="$(logging_grep_file "${choice}")"
-  line="$(logging_grep_line "${choice}")"
-  _tmux display-popup -E "$(logging_open_cmd "$(get_tmux_option "@logging_revamped_pager" "less")" "${file}" "${line}")"
+  _pager "$(get_tmux_option "@logging_revamped_pager" "less")" "$(logging_grep_line "${choice}")" "$(logging_grep_file "${choice}")"
 }
 
 # logging_copy -> send the most recent saved log to the terminal clipboard.
@@ -264,6 +271,7 @@ main() {
     clear)      logging_clear ;;
     tail)       logging_tail ;;
     search)     logging_search "${2:-}" ;;
+    pick)       logging_pick ;;
     copy)       logging_copy ;;
     compress)   logging_compress ;;
     prune)      logging_prune ;;

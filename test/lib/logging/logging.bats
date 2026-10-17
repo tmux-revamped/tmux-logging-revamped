@@ -25,6 +25,7 @@ teardown() {
   [[ "$(logging_filename "my/sess" 1 0 stamp)" == "tmux-my-sess-1-0-stamp.log" ]]
 }
 
+# shellcheck disable=SC2088
 @test "logging_expand_path expands a leading tilde" {
   [[ "$(logging_expand_path "~/logs")" == "${HOME}/logs" ]]
   [[ "$(logging_expand_path "~")" == "${HOME}" ]]
@@ -112,11 +113,6 @@ teardown() {
 @test "logging_grep_file and logging_grep_line split a grep record" {
   [[ "$(logging_grep_file "/a/b/file.log:42:some text")" == "/a/b/file.log" ]]
   [[ "$(logging_grep_line "/a/b/file.log:42:some text")" == "42" ]]
-}
-
-@test "logging_open_cmd builds a pager command at the matching line" {
-  [[ "$(logging_open_cmd less /tmp/x.log 42)" == "less +42 -- '/tmp/x.log'" ]]
-  [[ "$(logging_open_cmd "" /tmp/x.log)" == "less +1 -- '/tmp/x.log'" ]]
 }
 
 @test "logging.sh - pipe and capture seams are callable" {

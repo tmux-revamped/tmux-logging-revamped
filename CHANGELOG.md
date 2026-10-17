@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prune, compress, and copy act only on the plugin's own `tmux-*` files, ordered
   by modification time, so prune deletes the oldest logs and copy takes the
   newest instead of following alphabetical order.
+- Search runs the fzf picker and the pager inside a popup. The picker used to
+  start from the `run-shell` job, which has no terminal to draw on.
 
 ## [1.2.0] - 2026-06-30
 
