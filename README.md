@@ -4,7 +4,7 @@
 
 **Capture any pane to a file: live logging, full scrollback, or a one-shot screenshot.**
 
-[![Tests](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
+[![Tests](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
 
 </div>
 
@@ -27,20 +27,28 @@ Built from [tmux-plugin-template](https://github.com/tmux-revamped/tmux-plugin-t
 
 ## Controls
 
-| Key | Action |
-|-----|--------|
-| `prefix + P` | start or stop live logging of the active pane |
-| `prefix + M-p` | save the full scrollback to a file |
-| `prefix + M-P` | save the visible screen to a file |
-| `prefix + M-n` | save the scrollback with a labelled note in the filename |
-| `prefix + M-w` | start logging every pane in the current window |
-| `prefix + M-c` | clear the active pane's history |
-| `prefix + M-t` | follow the current pane's log in a popup |
-| `prefix + M-f` | search saved logs and open a match at its line |
-| `prefix + M-m` | open the control menu of every action |
+`prefix + M-l` opens the control menu of every action, the one key the family
+allocates to this plugin. Every action below is in that menu, and each one gets
+a direct key only when you set its option. The example key is the one it used to
+default to.
 
-Every key is configurable. The menu also reaches the copy, compress, prune, and
-doctor actions, which have no default key of their own.
+| Option | Action | Example key |
+|--------|--------|-------------|
+| `@logging_revamped_toggle_key` | start or stop live logging of the active pane | `P` |
+| `@logging_revamped_save_key` | save the full scrollback to a file | `M-p` |
+| `@logging_revamped_screenshot_key` | save the visible screen to a file | `M-P` |
+| `@logging_revamped_label_key` | save the scrollback with a labelled note in the filename | `M-n` |
+| `@logging_revamped_window_key` | start logging every pane in the current window | `M-w` |
+| `@logging_revamped_clear_key` | clear the active pane's history | `M-c` |
+| `@logging_revamped_tail_key` | follow the current pane's log in a popup | `M-t` |
+| `@logging_revamped_search_key` | search saved logs and open a match at its line | `M-f` |
+
+```tmux
+set -g @logging_revamped_toggle_key 'P'
+```
+
+The menu also reaches the copy, compress, prune, and doctor actions, which have
+no key option of their own.
 
 ## Install
 
@@ -66,15 +74,15 @@ Press `prefix + I` to install.
 | `@logging_revamped_pager` | `less` | pager a search match opens in |
 | `@logging_revamped_status_on` | `*` | glyph shown by `#{logging_status}` while a pane is logged |
 | `@logging_revamped_status_off` | empty | glyph shown when the active pane is not logged |
-| `@logging_revamped_toggle_key` | `P` | live-logging toggle key |
-| `@logging_revamped_save_key` | `M-p` | save-scrollback key |
-| `@logging_revamped_screenshot_key` | `M-P` | save-screen key |
-| `@logging_revamped_label_key` | `M-n` | labelled-save key |
-| `@logging_revamped_window_key` | `M-w` | log-whole-window key |
-| `@logging_revamped_clear_key` | `M-c` | clear-history key |
-| `@logging_revamped_tail_key` | `M-t` | live-tail key |
-| `@logging_revamped_search_key` | `M-f` | search-logs key |
-| `@logging_revamped_menu_key` | `M-m` | control-menu key |
+| `@logging_revamped_toggle_key` | empty | live-logging toggle key, unbound until set, for example `P` |
+| `@logging_revamped_save_key` | empty | save-scrollback key, unbound until set, for example `M-p` |
+| `@logging_revamped_screenshot_key` | empty | save-screen key, unbound until set, for example `M-P` |
+| `@logging_revamped_label_key` | empty | labelled-save key, unbound until set, for example `M-n` |
+| `@logging_revamped_window_key` | empty | log-whole-window key, unbound until set, for example `M-w` |
+| `@logging_revamped_clear_key` | empty | clear-history key, unbound until set, for example `M-c` |
+| `@logging_revamped_tail_key` | empty | live-tail key, unbound until set, for example `M-t` |
+| `@logging_revamped_search_key` | empty | search-logs key, unbound until set, for example `M-f` |
+| `@logging_revamped_menu_key` | `M-l` | control-menu key; `off` unbinds it |
 
 Files are named `tmux-<session>-<window>-<pane>-<timestamp>.<kind>`, for example `tmux-main-1-0-20260622-1430.history`.
 
@@ -99,7 +107,7 @@ set -g status-right "#{logging_status} %H:%M"
 The placeholder becomes a `#{?pane_pipe,...}` format built from the two glyph
 options when the plugin loads, so tmux draws it without starting a process. Set
 the glyph options before the plugin loads, or reload the config after changing
-them. Run `prefix + M-m` for the control menu, which lists every action
+them. Run `prefix + M-l` for the control menu, which lists every action
 including the keyless copy, compress, prune, and `doctor` commands.
 
 ## Compatibility

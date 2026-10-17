@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-17
+
+### Changed
+
+- **Breaking:** the control menu moves from `prefix + M-m` to `prefix + M-l`,
+  the key the family allocates to this plugin, and `off` unbinds it. Every
+  other action is unbound by default and stays in the menu: toggle `P`, save
+  `M-p`, screenshot `M-P`, label `M-n`, window `M-w`, clear `M-c`, tail
+  `M-t` and search `M-f`. Set `@logging_revamped_<action>_key` to bring a
+  key back, for example `@logging_revamped_toggle_key 'P'`, and
+  `@logging_revamped_menu_key 'M-m'` to keep the menu where it was.
+
 ### Fixed
 
 - Prune, compress, and copy act only on the plugin's own `tmux-*` files, ordered

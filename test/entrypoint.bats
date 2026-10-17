@@ -53,3 +53,42 @@ setup() {
   # Assert
   [[ "$(cat "${ENTRY_OPTS}/status-right")" == '%H:%M' ]]
 }
+
+@test "entrypoint - only the menu is bound by default, on M-l" {
+  # Act
+  run bash "${ENTRY}"
+
+  # Assert
+  [[ "$(cat "${ENTRY_OPTS}/bindings")" == "M-l" ]]
+}
+
+@test "entrypoint - the toggle and every other action stay unbound by default" {
+  # Act
+  run bash "${ENTRY}"
+
+  # Assert
+  [[ "$(cat "${ENTRY_OPTS}/bindings")" != *"P"* ]] || false
+  [[ "$(cat "${ENTRY_OPTS}/bindings")" != *"M-p"* ]]
+}
+
+@test "entrypoint - a set action key binds that action" {
+  # Arrange
+  printf '%s' 'P' > "${ENTRY_OPTS}/@logging_revamped_toggle_key"
+
+  # Act
+  run bash "${ENTRY}"
+
+  # Assert
+  [[ "$(cat "${ENTRY_OPTS}/bindings")" == "P"$'\n'"M-l" ]]
+}
+
+@test "entrypoint - a menu key of off binds nothing" {
+  # Arrange
+  printf '%s' 'off' > "${ENTRY_OPTS}/@logging_revamped_menu_key"
+
+  # Act
+  run bash "${ENTRY}"
+
+  # Assert
+  [[ ! -f "${ENTRY_OPTS}/bindings" ]]
+}

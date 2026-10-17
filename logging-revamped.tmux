@@ -17,15 +17,22 @@ get_key() {
 
 chmod +x "${LOG_CMD}" 2>/dev/null || true
 
-tmux bind-key "$(get_key "@logging_revamped_toggle_key" "P")" run-shell "${LOG_CMD} toggle"
-tmux bind-key "$(get_key "@logging_revamped_save_key" "M-p")" run-shell "${LOG_CMD} save"
-tmux bind-key "$(get_key "@logging_revamped_screenshot_key" "M-P")" run-shell "${LOG_CMD} screenshot"
-tmux bind-key "$(get_key "@logging_revamped_label_key" "M-n")" run-shell "${LOG_CMD} label"
-tmux bind-key "$(get_key "@logging_revamped_window_key" "M-w")" run-shell "${LOG_CMD} window"
-tmux bind-key "$(get_key "@logging_revamped_clear_key" "M-c")" run-shell "${LOG_CMD} clear"
-tmux bind-key "$(get_key "@logging_revamped_tail_key" "M-t")" run-shell "${LOG_CMD} tail"
-tmux bind-key "$(get_key "@logging_revamped_search_key" "M-f")" run-shell "${LOG_CMD} search"
-tmux bind-key "$(get_key "@logging_revamped_menu_key" "M-m")" run-shell "${LOG_CMD} menu"
+bind_action() {
+  local key
+  key="$(get_key "${1}" "${2}")"
+  [[ -z "${key}" || "${key}" == "off" ]] && return 0
+  tmux bind-key "${key}" run-shell "${LOG_CMD} ${3}"
+}
+
+bind_action "@logging_revamped_toggle_key" "" toggle
+bind_action "@logging_revamped_save_key" "" save
+bind_action "@logging_revamped_screenshot_key" "" screenshot
+bind_action "@logging_revamped_label_key" "" label
+bind_action "@logging_revamped_window_key" "" window
+bind_action "@logging_revamped_clear_key" "" clear
+bind_action "@logging_revamped_tail_key" "" tail
+bind_action "@logging_revamped_search_key" "" search
+bind_action "@logging_revamped_menu_key" "M-l" menu
 
 shopt -u patsub_replacement 2>/dev/null || true
 
