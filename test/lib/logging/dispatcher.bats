@@ -504,3 +504,79 @@ teardown() {
   # Assert
   [[ "${status}" -eq 0 ]]
 }
+
+@test "logging.sh - label prompt relays the reply through an option with a quoted plugin path" {
+  # Arrange
+  LOG_SELF="/p a/it's/logging.sh"
+  _tmux() { printf '%s|' "$@" >> "${BATS_TEST_TMPDIR}/seam"; }
+  local expected
+  expected="$(cat <<'EXPECTED'
+command-prompt|-p|log label:|set-option -gq @logging_revamped_prompt "%%%" ; run-shell "/p\\ a/it\\'s/logging.sh label_reply"|
+EXPECTED
+)"
+
+  # Act
+  run main label
+
+  # Assert
+  [[ "$(cat "${BATS_TEST_TMPDIR}/seam")" == "${expected}" ]]
+}
+
+@test "logging.sh - search prompt relays the reply through an option" {
+  # Arrange
+  _tmux() { printf '%s|' "$@" >> "${BATS_TEST_TMPDIR}/seam"; }
+
+  # Act
+  run main search
+
+  # Assert
+  [[ "$(cat "${BATS_TEST_TMPDIR}/seam")" != *"'%%'"* ]] || false
+  [[ "$(cat "${BATS_TEST_TMPDIR}/seam")" == *'@logging_revamped_prompt "%%%" ; run-shell "'*'search_reply"|' ]]
+}
+
+@test "logging.sh - label reply saves with the prompted label and clears it" {
+  # Arrange
+  _make_dir() { mkdir -p "${1}"; }
+  set_tmux_option "@logging_revamped_prompt" "it's \"done\""
+
+  # Act
+  run main label_reply
+
+  # Assert
+  [[ -f "${BATS_TEST_TMPDIR}/logs/tmux-main-1-0-STAMP-it-s--done-.history" ]] || false
+  [[ -z "$(get_tmux_option "@logging_revamped_prompt")" ]]
+}
+
+@test "logging.sh - search reply searches for the prompted pattern" {
+  # Arrange
+  set_tmux_option "@logging_revamped_prompt" "a'b"
+  _grep() { printf '%s\n' "${1}" >> "${BATS_TEST_TMPDIR}/grep"; }
+
+  # Act
+  run main search_reply
+
+  # Assert
+  [[ "$(cat "${BATS_TEST_TMPDIR}/grep")" == "a'b" ]]
+}
+
+@test "logging.sh - an empty search reply does not prompt again" {
+  # Arrange
+  _tmux() { echo "$1" >> "${BATS_TEST_TMPDIR}/seam"; }
+
+  # Act
+  run main search_reply
+
+  # Assert
+  [[ ! -f "${BATS_TEST_TMPDIR}/seam" ]]
+}
+
+@test "logging.sh - the no-match message doubles hashes in the pattern" {
+  # Arrange
+  _grep() { return 0; }
+
+  # Act
+  run main search '#(id)'
+
+  # Assert
+  [[ "$(cat "${BATS_TEST_TMPDIR}/msg")" == "no matches for ##(id)" ]]
+}

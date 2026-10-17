@@ -44,6 +44,27 @@ _clip() { tmux load-buffer -w - 2>/dev/null; }
 # shellcheck disable=SC2086
 _pager() { ${1} "+${2}" -- "${3}"; }
 
+publish_escape() {
+  local hash="#"
+  printf '%s' "${1//"${hash}"/${hash}${hash}}"
+}
+
+_prompt_template() {
+  shopt -u patsub_replacement 2>/dev/null || true
+  local cmd hash="#" bs='\' dq='"' dl='$' ebs='\\' edq='\"' edl='\$'
+  cmd="$(printf '%q %s' "${LOG_SELF}" "${1}")"
+  cmd="${cmd//"${hash}"/${hash}${hash}}"
+  cmd="${cmd//"${bs}"/${ebs}}"
+  cmd="${cmd//"${dq}"/${edq}}"
+  cmd="${cmd//"${dl}"/${edl}}"
+  printf 'set-option -gq @logging_revamped_prompt "%%%%%%" ; run-shell "%s"' "${cmd}"
+}
+
+_take_prompt_reply() {
+  get_tmux_option "@logging_revamped_prompt" ""
+  unset_tmux_option "@logging_revamped_prompt"
+}
+
 logging_dir() {
   # shellcheck disable=SC2088 # ~ is a literal default expanded by logging_expand_path
   logging_expand_path "$(get_tmux_option "@logging_revamped_path" "~/.tmux/logs")"
@@ -126,7 +147,7 @@ logging_screenshot() {
 # logging_prompt_label -> ask for a note, then save the scrollback with the note
 # folded into the filename.
 logging_prompt_label() {
-  _tmux command-prompt -p "log label:" "run-shell \"${LOG_SELF} save '%%'\""
+  _tmux command-prompt -p "log label:" "$(_prompt_template label_reply)"
 }
 
 # logging_window -> start logging every pane in the current window at once.
@@ -165,15 +186,22 @@ logging_tail() {
 logging_search() {
   local pattern="${1:-}"
   if [[ -z "${pattern}" ]]; then
-    _tmux command-prompt -p "search logs:" "run-shell \"${LOG_SELF} search '%%'\""
+    _tmux command-prompt -p "search logs:" "$(_prompt_template search_reply)"
     return 0
   fi
   if [[ -z "$(_grep "${pattern}" "$(logging_dir)")" ]]; then
-    _message "no matches for ${pattern}"
+    _message "no matches for $(publish_escape "${pattern}")"
     return 0
   fi
   set_tmux_option "@logging_revamped_search_pattern" "${pattern}"
   _tmux display-popup -E "$(printf '%q pick' "${LOG_SELF}")"
+}
+
+logging_search_reply() {
+  local pattern
+  pattern="$(_take_prompt_reply)"
+  [[ -z "${pattern}" ]] && return 0
+  logging_search "${pattern}"
 }
 
 logging_pick() {
@@ -285,11 +313,13 @@ main() {
     save)       logging_save "${2:-}" ;;
     screenshot) logging_screenshot "${2:-}" ;;
     label)      logging_prompt_label ;;
+    label_reply) logging_save "$(_take_prompt_reply)" ;;
     window)     logging_window ;;
     clear)      logging_clear ;;
     tail)       logging_tail ;;
     search)     logging_search "${2:-}" ;;
     pick)       logging_pick ;;
+    search_reply) logging_search_reply ;;
     copy)       logging_copy ;;
     compress)   logging_compress ;;
     prune)      logging_prune ;;

@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to be world-readable.
 - Compress leaves alone any file a pane is still logging to, instead of
   gzipping it out from under the running `pipe-pane`.
+- The label and search prompts accept any text. A reply with a quote used to
+  break the command, and one containing `#()` ran as a command; the reply is
+  now handed over through a plugin option with `%%%` and never reaches a shell
+  or a format.
 
 ## [1.2.0] - 2026-06-30
 
