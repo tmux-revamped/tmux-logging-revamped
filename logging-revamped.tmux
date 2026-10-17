@@ -27,12 +27,21 @@ tmux bind-key "$(get_key "@logging_revamped_tail_key" "M-t")" run-shell "${LOG_C
 tmux bind-key "$(get_key "@logging_revamped_search_key" "M-f")" run-shell "${LOG_CMD} search"
 tmux bind-key "$(get_key "@logging_revamped_menu_key" "M-m")" run-shell "${LOG_CMD} menu"
 
+shopt -u patsub_replacement 2>/dev/null || true
+
+status_format() {
+  local on off comma="," escaped="#,"
+  on="$(get_key "@logging_revamped_status_on" "*")"
+  off="$(tmux show-option -gqv "@logging_revamped_status_off")"
+  printf '#{?pane_pipe,%s,%s}' "${on//"${comma}"/${escaped}}" "${off//"${comma}"/${escaped}}"
+}
+
 placeholders=(
   "\#{logging_status}"
 )
 
 commands=(
-  "#(${LOG_CMD} status)"
+  "$(status_format)"
 )
 
 interpolate() {

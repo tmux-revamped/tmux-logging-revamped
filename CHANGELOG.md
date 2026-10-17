@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or a format.
 - Logging a whole window records each pane's file, so live tail follows those
   panes instead of reporting them as not logged.
+- `#{logging_status}` expands to a `#{?pane_pipe,...}` format instead of a
+  `#()` job, so nothing runs in the background on each status redraw. Glyphs
+  containing a comma or an ampersand render as written.
+- The README states the real tmux floor, 3.2, and no longer claims the status
+  glyph is exported as `@logging_status`.
 
 ## [1.2.0] - 2026-06-30
 

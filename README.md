@@ -8,7 +8,7 @@
 
 </div>
 
-**14** actions · **status indicator** · **live tail + search** · **tmux 1.9 to 3.5** · **99** tests · **95%+** coverage
+**14** actions · **status indicator** · **live tail + search** · **tmux 3.2+** · **95%+** coverage
 
 Logs a tmux pane to a file. Toggle live logging on a pane, dump the entire scrollback at once, or save the visible screen. Filenames are built from the session, window, pane, and a timestamp, with every component sanitized so a session named `feature/login` never breaks the path.
 
@@ -87,13 +87,15 @@ pane is being logged:
 set -g status-right "#{logging_status} %H:%M"
 ```
 
-The same value is exported as the `@logging_status` option, so a theme can read
-it directly. Run `prefix + M-m` for the control menu, which lists every action
+The placeholder becomes a `#{?pane_pipe,...}` format built from the two glyph
+options when the plugin loads, so tmux draws it without starting a process. Set
+the glyph options before the plugin loads, or reload the config after changing
+them. Run `prefix + M-m` for the control menu, which lists every action
 including the keyless copy, compress, prune, and `doctor` commands.
 
 ## Compatibility
 
-Works on every tmux version TPM supports, 1.9 and up, on Linux (x86_64 and arm64) and macOS (Intel and Apple Silicon). It uses only `pipe-pane` and `capture-pane`, both core tmux commands.
+Needs tmux 3.2 or later, on Linux (x86_64 and arm64) and macOS (Intel and Apple Silicon). Live tail, search, and `doctor` open in `display-popup`, and copy uses `load-buffer -w`, both of which arrived in tmux 3.2.
 
 ## Development
 
