@@ -34,15 +34,18 @@ publish_escape() {
   printf '%s' "${1//"${hash}"/${hash}${hash}}"
 }
 
-_prompt_template() {
+_self_cmd() {
   shopt -u patsub_replacement 2>/dev/null || true
   local cmd hash="#" bs='\' dq='"' dl='$' ebs='\\' edq='\"' edl='\$'
   cmd="$(printf '%q %s' "${LOG_SELF}" "${1}")"
   cmd="${cmd//"${hash}"/${hash}${hash}}"
   cmd="${cmd//"${bs}"/${ebs}}"
   cmd="${cmd//"${dq}"/${edq}}"
-  cmd="${cmd//"${dl}"/${edl}}"
-  printf 'set-option -gq @logging_revamped_prompt "%%%%%%" ; run-shell "%s"' "${cmd}"
+  printf '%s' "${cmd//"${dl}"/${edl}}"
+}
+
+_prompt_template() {
+  printf 'set-option -gq @logging_revamped_prompt "%%%%%%" ; run-shell "%s"' "$(_self_cmd "${1}")"
 }
 
 _take_prompt_reply() {
@@ -260,18 +263,18 @@ logging_status() {
 
 logging_menu() {
   _tmux display-menu -T "Logging" \
-    "Toggle live log" "" "run-shell \"${LOG_SELF} toggle\"" \
-    "Save scrollback" "" "run-shell \"${LOG_SELF} save\"" \
-    "Save screen" "" "run-shell \"${LOG_SELF} screenshot\"" \
-    "Labelled save" "" "run-shell \"${LOG_SELF} label\"" \
-    "Log whole window" "" "run-shell \"${LOG_SELF} window\"" \
-    "Clear history" "" "run-shell \"${LOG_SELF} clear\"" \
-    "Live tail" "" "run-shell \"${LOG_SELF} tail\"" \
-    "Search logs" "" "run-shell \"${LOG_SELF} search\"" \
-    "Copy last log" "" "run-shell \"${LOG_SELF} copy\"" \
-    "Compress logs" "" "run-shell \"${LOG_SELF} compress\"" \
-    "Prune old logs" "" "run-shell \"${LOG_SELF} prune\"" \
-    "Doctor" "" "display-popup -E \"${LOG_SELF} doctor; read -r\""
+    "Toggle live log" "" "run-shell \"$(_self_cmd toggle)\"" \
+    "Save scrollback" "" "run-shell \"$(_self_cmd save)\"" \
+    "Save screen" "" "run-shell \"$(_self_cmd screenshot)\"" \
+    "Labelled save" "" "run-shell \"$(_self_cmd label)\"" \
+    "Log whole window" "" "run-shell \"$(_self_cmd window)\"" \
+    "Clear history" "" "run-shell \"$(_self_cmd clear)\"" \
+    "Live tail" "" "run-shell \"$(_self_cmd tail)\"" \
+    "Search logs" "" "run-shell \"$(_self_cmd search)\"" \
+    "Copy last log" "" "run-shell \"$(_self_cmd copy)\"" \
+    "Compress logs" "" "run-shell \"$(_self_cmd compress)\"" \
+    "Prune old logs" "" "run-shell \"$(_self_cmd prune)\"" \
+    "Doctor" "" "display-popup -E \"$(_self_cmd 'doctor; read -r')\""
 }
 
 main() {

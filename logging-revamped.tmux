@@ -15,7 +15,7 @@ bind_action() {
   local key
   key="$(get_key "${1}" "${2}")"
   [[ -z "${key}" || "${key}" == "off" ]] && return 0
-  tmux bind-key "${key}" run-shell "${LOG_CMD} ${3}"
+  tmux bind-key "${key}" run-shell "$(printf '%q %s' "${LOG_CMD}" "${3}")"
 }
 
 bind_action "@logging_revamped_toggle_key" "" toggle

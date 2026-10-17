@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The key bindings and the control menu quote the plugin path, so the plugin
+  works when installed under a directory whose name contains a space or a single
+  quote.
+
 ## [2.0.0] - 2026-10-17
 
 ### Changed

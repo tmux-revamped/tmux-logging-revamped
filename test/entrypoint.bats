@@ -92,3 +92,23 @@ setup() {
   # Assert
   [[ ! -f "${ENTRY_OPTS}/bindings" ]]
 }
+
+@test "entrypoint - the bound command runs the plugin from a path with a space and a quote" {
+  # Arrange
+  local root="${BATS_TEST_TMPDIR}/it's a dir"
+  mkdir -p "${root}/src"
+  cp "${ENTRY}" "${root}/logging-revamped.tmux"
+  printf '#!/bin/sh\nprintf %%s "$1" > "$RAN_FILE"\n' > "${root}/src/logging.sh"
+  RAN_FILE="${BATS_TEST_TMPDIR}/ran"
+  export RAN_FILE
+  tmux() { [[ "${1}" == "bind-key" ]] && printf '%s' "${4}" > "${ENTRY_OPTS}/bound"; return 0; }
+  export -f tmux
+  bash "${root}/logging-revamped.tmux"
+
+  # Act
+  run sh -c "$(cat "${ENTRY_OPTS}/bound")"
+
+  # Assert
+  [ "${status}" -eq 0 ]
+  [[ "$(cat "${RAN_FILE}")" == "menu" ]]
+}

@@ -592,3 +592,25 @@ EXPECTED
   [[ "$(get_tmux_option "$(logging_pane_file_opt "%1")")" == "${BATS_TEST_TMPDIR}/logs/tmux-main-1-0-STAMP.log" ]] || false
   [[ "$(get_tmux_option "$(logging_pane_file_opt "%2")")" == "${BATS_TEST_TMPDIR}/logs/tmux-main-1-1-STAMP.log" ]]
 }
+
+@test "logging.sh - menu items run the plugin through a quoted path" {
+  # Arrange
+  LOG_SELF="/p a/it's/logging.sh"
+  _tmux() { printf '%s\n' "$@" >> "${BATS_TEST_TMPDIR}/seam"; }
+  local toggle doctor
+  toggle="$(cat <<'EXPECTED'
+run-shell "/p\\ a/it\\'s/logging.sh toggle"
+EXPECTED
+)"
+  doctor="$(cat <<'EXPECTED'
+display-popup -E "/p\\ a/it\\'s/logging.sh doctor; read -r"
+EXPECTED
+)"
+
+  # Act
+  run main menu
+
+  # Assert
+  [[ "$(sed -n 6p "${BATS_TEST_TMPDIR}/seam")" == "${toggle}" ]] || false
+  [[ "$(tail -n 1 "${BATS_TEST_TMPDIR}/seam")" == "${doctor}" ]]
+}
