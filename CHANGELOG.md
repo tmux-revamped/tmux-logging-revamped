@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   newest instead of following alphabetical order.
 - Search runs the fzf picker and the pager inside a popup. The picker used to
   start from the `run-shell` job, which has no terminal to draw on.
+- Logs are private to the owner. The log directory is created with mode 700 and
+  every capture and live log file is created under umask 077, where they used
+  to be world-readable.
 
 ## [1.2.0] - 2026-06-30
 

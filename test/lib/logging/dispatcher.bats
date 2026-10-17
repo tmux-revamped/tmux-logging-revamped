@@ -91,7 +91,7 @@ teardown() {
   set_tmux_option "@logging_revamped_rolling" "1"
   _make_dir() { :; }
   run main toggle
-  [[ "$(cat "${BATS_TEST_TMPDIR}/pipe")" == *"-session.log'"* ]]
+  [[ "$(cat "${BATS_TEST_TMPDIR}/pipe")" == *"-session.log" ]]
 }
 
 @test "logging.sh - status prints the on glyph and exports the option when piped" {
@@ -429,4 +429,50 @@ teardown() {
 
   # Assert
   [[ "$(cat "${BATS_TEST_TMPDIR}/gz")" == "GZIP:-- ${d}/tmux-a.log" ]]
+}
+
+@test "logging.sh - toggle pipes into a file only the owner can read" {
+  # Arrange
+  _pane_pipe() { echo "0"; }
+
+  # Act
+  run main toggle
+
+  # Assert
+  [[ "$(cat "${BATS_TEST_TMPDIR}/pipe")" == "PIPE:umask 077; exec cat >> $(printf '%q' "${BATS_TEST_TMPDIR}/logs/tmux-main-1-0-STAMP.log")" ]]
+}
+
+@test "logging.sh - save writes a file only the owner can read" {
+  # Arrange
+  _make_dir() { mkdir -p "${1}"; }
+  umask 022
+
+  # Act
+  run main save
+
+  # Assert
+  [[ "$(ls -l "${BATS_TEST_TMPDIR}/logs/tmux-main-1-0-STAMP.history" | cut -c1-10)" == "-rw-------" ]]
+}
+
+@test "logging.sh - the log directory is created private to the owner" {
+  # Arrange
+  source "${BATS_TEST_DIRNAME}/../../../src/logging.sh"
+  umask 022
+
+  # Act
+  _make_dir "${BATS_TEST_TMPDIR}/private"
+
+  # Assert
+  [[ "$(ls -ld "${BATS_TEST_TMPDIR}/private" | cut -c1-10)" == "drwx------" ]]
+}
+
+@test "logging.sh - the pipe command keeps a hash in the path literal" {
+  # Arrange
+  local file="/logs/a#b.log"
+
+  # Act
+  run _pipe_cmd "${file}"
+
+  # Assert
+  [[ "${output}" == "umask 077; exec cat >> /logs/a##b.log" ]]
 }

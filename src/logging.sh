@@ -26,7 +26,7 @@ source "${PLUGIN_DIR}/src/lib/logging/doctor.sh"
 _pane_pipe() { tmux display-message -p '#{pane_pipe}' 2>/dev/null; }
 _pane_var() { tmux display-message -p "#{${1}}" 2>/dev/null; }
 _message() { tmux display-message "${1}" 2>/dev/null; }
-_make_dir() { mkdir -p "${1}" 2>/dev/null; }
+_make_dir() { [[ -d "${1}" ]] || (umask 077 && mkdir -p "${1}" 2>/dev/null); }
 
 # Interactive and external seams. Tests override these so no real popup, menu,
 # fzf, gzip, find, rm, or clipboard call is ever made.
@@ -69,6 +69,12 @@ _start_file() {
   fi
 }
 
+_pipe_cmd() {
+  local hash="#" cmd
+  cmd="umask 077; exec cat >> $(printf '%q' "${1}")"
+  printf '%s' "${cmd//"${hash}"/${hash}${hash}}"
+}
+
 _capture_flags() {
   [[ "$(get_tmux_option "@logging_revamped_color" "0")" == "1" ]] && printf '%s' "-e"
   return 0
@@ -92,7 +98,7 @@ logging_toggle() {
   else
     local file
     file="$(_start_file)"
-    _pipe_pane "cat >> '${file}'"
+    _pipe_pane "$(_pipe_cmd "${file}")"
     set_tmux_option "$(logging_pane_file_opt "$(_pane_var pane_id)")" "${file}"
     _message "tmux logging to ${file}"
   fi
@@ -131,7 +137,7 @@ logging_window() {
   while IFS=' ' read -r id s w p; do
     [[ -z "${id}" ]] && continue
     file="${dir}/$(logging_filename "${s}" "${w}" "${p}" "${stamp}" log)"
-    _pipe_pane -t "${id}" "cat >> '${file}'"
+    _pipe_pane -t "${id}" "$(_pipe_cmd "${file}")"
     count=$(( count + 1 ))
   done <<< "$(_window_panes)"
   _message "logging ${count} panes in this window"
@@ -262,6 +268,7 @@ logging_menu() {
 }
 
 main() {
+  umask 077
   case "${1:-}" in
     toggle)     logging_toggle ;;
     save)       logging_save "${2:-}" ;;
