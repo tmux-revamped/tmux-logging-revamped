@@ -4,18 +4,18 @@
 
 <strong>將任何窗格儲存到檔案：即時記錄、完整捲動緩衝區或一次性截圖。</strong>
 
-[English](README.md) &nbsp;|&nbsp; [日本語](README.ja.md) &nbsp;|&nbsp; [简体中文](README.zh-Hans.md) &nbsp;|&nbsp; 繁體中文（香港）
+[English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | 繁體中文（香港）
 
 [![Tests](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
 
 <p align="center">
-  <a href="#what-it-does">功能</a> &nbsp;|&nbsp;
-  <a href="#installation">安裝</a> &nbsp;|&nbsp;
-  <a href="#usage">用法</a> &nbsp;|&nbsp;
-  <a href="#configuration">設定</a> &nbsp;|&nbsp;
-  <a href="#key-bindings">按鍵綁定</a> &nbsp;|&nbsp;
+  <a href="#what-it-does">功能</a> |
+  <a href="#installation">安裝</a> |
+  <a href="#usage">用法</a> |
+  <a href="#configuration">設定</a> |
+  <a href="#key-bindings">按鍵綁定</a> |
   <a href="#how-it-works">運作原理</a>
 </p>
 
