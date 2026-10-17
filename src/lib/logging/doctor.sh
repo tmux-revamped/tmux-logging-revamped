@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-#
-# doctor.sh: a capability report explaining what this host can and cannot do for
-# logging: where logs are written, whether that path is writable, and which
-# optional tools back the compress, search, and live-tail actions.
 
 [[ -n "${_LOGGING_REVAMPED_DOCTOR_LOADED:-}" ]] && return 0
 _LOGGING_REVAMPED_DOCTOR_LOADED=1
@@ -17,7 +13,6 @@ source "${_LOGGING_DOCTOR_DIR}/../tmux/tmux-ops.sh"
 # shellcheck source=/dev/null
 source "${_LOGGING_DOCTOR_DIR}/logging.sh"
 
-# _doctor_tool NAME -> "  NAME: found" or "  NAME: not found".
 _doctor_tool() {
   if has_command "${1}"; then
     printf '  %s: found\n' "${1}"
@@ -26,7 +21,6 @@ _doctor_tool() {
   fi
 }
 
-# _logging_path_writable DIR -> 0 when DIR can be written to or created.
 _logging_path_writable() {
   local dir="${1}"
   if [[ -d "${dir}" ]]; then
@@ -36,7 +30,6 @@ _logging_path_writable() {
   fi
 }
 
-# logging_doctor -> a human readable report of the log path and detected tools.
 logging_doctor() {
   local dir
   # shellcheck disable=SC2088 # ~ is a literal default expanded by logging_expand_path

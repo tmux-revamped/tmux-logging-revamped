@@ -1,16 +1,4 @@
 #!/usr/bin/env bash
-#
-# logging.sh: command dispatcher for tmux-logging-revamped.
-#
-# Usage: logging.sh toggle | save [label] | screenshot [label] | label | window |
-#                   clear | tail | search [pattern] | copy | compress | prune |
-#                   status | menu | doctor
-#
-# toggle starts or stops piping the active pane to a log file. save writes the
-# full scrollback, screenshot the visible pane. Filenames are built from the
-# session, window, pane, and a timestamp. All pane captures, popups, the picker,
-# and the clipboard sit behind seams so the suite touches no real pane, launches
-# no popup or fzf, and writes only inside a temp directory.
 
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_SELF="${BASH_SOURCE[0]}"
@@ -22,14 +10,11 @@ source "${PLUGIN_DIR}/src/lib/logging/logging.sh"
 # shellcheck source=/dev/null
 source "${PLUGIN_DIR}/src/lib/logging/doctor.sh"
 
-# Host-probe seams. Tests override these.
 _pane_pipe() { tmux display-message -p '#{pane_pipe}' 2>/dev/null; }
 _pane_var() { tmux display-message -p "#{${1}}" 2>/dev/null; }
 _message() { tmux display-message "${1}" 2>/dev/null; }
 _make_dir() { [[ -d "${1}" ]] || (umask 077 && mkdir -p "${1}" 2>/dev/null); }
 
-# Interactive and external seams. Tests override these so no real popup, menu,
-# fzf, gzip, find, rm, or clipboard call is ever made.
 _tmux() { tmux "$@"; }
 _clear_history() { tmux clear-history 2>/dev/null; }
 _piped_panes() { tmux list-panes -a -F '#{pane_pipe}|#{pane_id}' 2>/dev/null; }
@@ -70,7 +55,6 @@ logging_dir() {
   logging_expand_path "$(get_tmux_option "@logging_revamped_path" "~/.tmux/logs")"
 }
 
-# _log_file EXT [LABEL] -> a full path in the log directory, created on demand.
 _log_file() {
   local dir
   dir="$(logging_dir)"
@@ -78,8 +62,6 @@ _log_file() {
   printf '%s/%s' "${dir}" "$(logging_filename_labeled "$(_pane_var session_name)" "$(_pane_var window_index)" "$(_pane_var pane_index)" "$(_now_stamp)" "${2:-}" "${1}")"
 }
 
-# _start_file -> the path live logging appends to: a stable rolling file when
-# @logging_revamped_rolling is 1, otherwise a fresh timestamped file.
 _start_file() {
   if [[ "$(get_tmux_option "@logging_revamped_rolling" "0")" == "1" ]]; then
     local dir
@@ -102,8 +84,6 @@ _capture_flags() {
   return 0
 }
 
-# _output_filter -> the capture filter pipeline: trailing whitespace is always
-# trimmed; prompt and command-echo lines are dropped when output-only is on.
 _output_filter() {
   if [[ "$(get_tmux_option "@logging_revamped_output_only" "0")" == "1" ]]; then
     logging_strip_prompts "$(get_tmux_option "@logging_revamped_prompt_pattern" "")" | logging_trim_trailing
@@ -144,13 +124,10 @@ logging_screenshot() {
   _message "saved screen to ${file}"
 }
 
-# logging_prompt_label -> ask for a note, then save the scrollback with the note
-# folded into the filename.
 logging_prompt_label() {
   _tmux command-prompt -p "log label:" "$(_prompt_template label_reply)"
 }
 
-# logging_window -> start logging every pane in the current window at once.
 logging_window() {
   local dir stamp id s w p file count=0
   dir="$(logging_dir)"
@@ -171,7 +148,6 @@ logging_clear() {
   _message "cleared pane history"
 }
 
-# logging_tail -> open a popup that follows the file this pane is logging to.
 logging_tail() {
   local file
   file="$(get_tmux_option "$(logging_pane_file_opt "$(_pane_var pane_id)")" "")"
@@ -182,8 +158,6 @@ logging_tail() {
   _tmux display-popup -E "tail -f -- '${file}'"
 }
 
-# logging_search [PATTERN] -> with no pattern, prompt for one; with a pattern,
-# grep the saved logs, pick a match in fzf, and open it at the matching line.
 logging_search() {
   local pattern="${1:-}"
   if [[ -z "${pattern}" ]]; then
@@ -216,7 +190,6 @@ logging_pick() {
   _pager "$(get_tmux_option "@logging_revamped_pager" "less")" "$(logging_grep_line "${choice}")" "$(logging_grep_file "${choice}")"
 }
 
-# logging_copy -> send the most recent saved log to the terminal clipboard.
 logging_copy() {
   local dir last
   dir="$(logging_dir)"
@@ -229,7 +202,6 @@ logging_copy() {
   _message "copied ${last} to clipboard"
 }
 
-# logging_compress -> gzip every uncompressed log in the directory.
 _active_logs() {
   local pipe id
   while IFS='|' read -r pipe id; do
@@ -252,8 +224,6 @@ logging_compress() {
   _message "compressed ${count} logs"
 }
 
-# logging_prune -> delete logs older than @logging_revamped_retain_days and trim
-# the directory to @logging_revamped_retain_max newest files.
 logging_prune() {
   local dir days max removed=0 f victims
   dir="$(logging_dir)"
@@ -277,8 +247,6 @@ logging_prune() {
   _message "pruned ${removed} logs"
 }
 
-# logging_status -> a glyph in the status line when the active pane is logged,
-# also exported as @logging_status for a theme to read.
 logging_status() {
   local glyph
   if [[ "$(_pane_pipe)" == "1" ]]; then
@@ -290,7 +258,6 @@ logging_status() {
   printf '%s' "${glyph}"
 }
 
-# logging_menu -> a discoverable control menu of every action, via the _tmux seam.
 logging_menu() {
   _tmux display-menu -T "Logging" \
     "Toggle live log" "" "run-shell \"${LOG_SELF} toggle\"" \

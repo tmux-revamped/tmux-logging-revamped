@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-#
-# logging-revamped.tmux: TPM entry point.
-#
-# Binds the capture controls and replaces #{logging_status} in the status line
-# with a call to the dispatcher. All work is done on demand by the dispatcher, so
-# nothing runs in the background.
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_CMD="${CURRENT_DIR}/src/logging.sh"
