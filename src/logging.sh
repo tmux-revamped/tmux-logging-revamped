@@ -38,7 +38,7 @@ _gzip() { gzip "$@" 2>/dev/null; }
 _grep() { grep -rnI -- "${1}" "${2}" 2>/dev/null; }
 _find_old() { find "${1}" -type f -name 'tmux-*' ! -name '*.gz' -mtime +"${2}" 2>/dev/null; }
 _remove() { rm -f -- "$@" 2>/dev/null; }
-_list_logs() { ls -1 "${1}" 2>/dev/null; }
+_list_logs() { (cd "${1}" 2>/dev/null && ls -1tr -- tmux-* 2>/dev/null); }
 _clip() { tmux load-buffer -w - 2>/dev/null; }
 
 logging_dir() {
@@ -177,7 +177,7 @@ logging_search() {
 logging_copy() {
   local dir last
   dir="$(logging_dir)"
-  last="$(_list_logs "${dir}" | tail -n 1)"
+  last="$(_list_logs "${dir}" | grep -v '\.gz$' | tail -n 1)"
   if [[ -z "${last}" ]]; then
     _message "no logs to copy"
     return 0

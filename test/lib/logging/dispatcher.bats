@@ -329,3 +329,57 @@ teardown() {
   run _fzf <<< "one"
   [[ "${output}" == "one" ]]
 }
+
+@test "logging.sh - prune by count deletes the oldest plugin logs and keeps foreign files" {
+  # Arrange
+  local d="${BATS_TEST_TMPDIR}/logs"
+  mkdir -p "${d}"
+  printf 'x\n' > "${d}/tmux-b.log"
+  printf 'x\n' > "${d}/tmux-a.log"
+  printf 'x\n' > "${d}/notes.txt"
+  touch -t 202601010000 "${d}/tmux-b.log"
+  touch -t 202601020000 "${d}/tmux-a.log"
+  touch -t 202601030000 "${d}/notes.txt"
+  set_tmux_option "@logging_revamped_retain_max" "1"
+
+  # Act
+  run main prune
+
+  # Assert
+  [[ ! -f "${d}/tmux-b.log" ]] || false
+  [[ -f "${d}/tmux-a.log" ]] || false
+  [[ -f "${d}/notes.txt" ]] || false
+  [[ "$(cat "${BATS_TEST_TMPDIR}/msg")" == *"pruned 1 logs"* ]]
+}
+
+@test "logging.sh - copy picks the most recently modified log" {
+  # Arrange
+  local d="${BATS_TEST_TMPDIR}/logs"
+  mkdir -p "${d}"
+  printf 'old\n' > "${d}/tmux-z.history"
+  printf 'new\n' > "${d}/tmux-a.history"
+  touch -t 202601010000 "${d}/tmux-z.history"
+  touch -t 202601020000 "${d}/tmux-a.history"
+  _clip() { cat > "${BATS_TEST_TMPDIR}/clip"; }
+
+  # Act
+  run main copy
+
+  # Assert
+  [[ "$(cat "${BATS_TEST_TMPDIR}/clip")" == "new" ]]
+}
+
+@test "logging.sh - compress only touches plugin log files" {
+  # Arrange
+  local d="${BATS_TEST_TMPDIR}/logs"
+  mkdir -p "${d}"
+  printf 'x\n' > "${d}/tmux-a.log"
+  printf 'x\n' > "${d}/notes.txt"
+  _gzip() { echo "GZIP:$*" >> "${BATS_TEST_TMPDIR}/gz"; }
+
+  # Act
+  run main compress
+
+  # Assert
+  [[ "$(cat "${BATS_TEST_TMPDIR}/gz")" == "GZIP:-- ${d}/tmux-a.log" ]]
+}
