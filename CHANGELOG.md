@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Logs are private to the owner. The log directory is created with mode 700 and
   every capture and live log file is created under umask 077, where they used
   to be world-readable.
+- Compress leaves alone any file a pane is still logging to, instead of
+  gzipping it out from under the running `pipe-pane`.
 
 ## [1.2.0] - 2026-06-30
 

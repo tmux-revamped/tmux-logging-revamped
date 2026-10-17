@@ -32,6 +32,7 @@ _make_dir() { [[ -d "${1}" ]] || (umask 077 && mkdir -p "${1}" 2>/dev/null); }
 # fzf, gzip, find, rm, or clipboard call is ever made.
 _tmux() { tmux "$@"; }
 _clear_history() { tmux clear-history 2>/dev/null; }
+_piped_panes() { tmux list-panes -a -F '#{pane_pipe}|#{pane_id}' 2>/dev/null; }
 _window_panes() { tmux list-panes -F '#{pane_id} #{session_name} #{window_index} #{pane_index}' 2>/dev/null; }
 _fzf() { fzf --no-sort --reverse --height=100% 2>/dev/null; }
 _gzip() { gzip "$@" 2>/dev/null; }
@@ -200,12 +201,22 @@ logging_copy() {
 }
 
 # logging_compress -> gzip every uncompressed log in the directory.
+_active_logs() {
+  local pipe id
+  while IFS='|' read -r pipe id; do
+    [[ "${pipe}" == "1" && -n "${id}" ]] || continue
+    get_tmux_option "$(logging_pane_file_opt "${id}")" ""
+  done <<< "$(_piped_panes)"
+}
+
 logging_compress() {
-  local dir f count=0
+  local dir f active count=0
   dir="$(logging_dir)"
+  active="$(_active_logs)"
   while IFS= read -r f; do
     [[ -z "${f}" ]] && continue
     case "${f}" in *.gz) continue ;; esac
+    printf '%s\n' "${active}" | grep -Fqx -- "${dir}/${f}" && continue
     _gzip -- "${dir}/${f}"
     count=$(( count + 1 ))
   done <<< "$(_list_logs "${dir}")"

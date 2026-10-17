@@ -476,3 +476,31 @@ teardown() {
   # Assert
   [[ "${output}" == "umask 077; exec cat >> /logs/a##b.log" ]]
 }
+
+@test "logging.sh - compress skips files that a pane is still logging to" {
+  # Arrange
+  local d="${BATS_TEST_TMPDIR}/logs"
+  _piped_panes() { printf '1|%%1\n0|%%2\n'; }
+  set_tmux_option "$(logging_pane_file_opt "%1")" "${d}/tmux-a.log"
+  set_tmux_option "$(logging_pane_file_opt "%2")" "${d}/tmux-b.log"
+  _list_logs() { printf 'tmux-a.log\ntmux-b.log\n'; }
+  _gzip() { echo "GZIP:$*" >> "${BATS_TEST_TMPDIR}/gz"; }
+
+  # Act
+  run main compress
+
+  # Assert
+  [[ "$(cat "${BATS_TEST_TMPDIR}/gz")" == "GZIP:-- ${d}/tmux-b.log" ]] || false
+  [[ "$(cat "${BATS_TEST_TMPDIR}/msg")" == *"compressed 1 logs"* ]]
+}
+
+@test "logging.sh - the piped panes seam is callable" {
+  # Arrange
+  source "${BATS_TEST_DIRNAME}/../../../src/logging.sh"
+
+  # Act
+  run _piped_panes
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+}
