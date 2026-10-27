@@ -13,7 +13,7 @@ teardown() {
 
 @test "constants.sh - exposes the plugin version" {
   # Arrange
-  local expected="2.0.0"
+  local expected="2.0.1"
 
   # Act
   local actual="${LOGGING_REVAMPED_VERSION}"
