@@ -281,7 +281,7 @@ logging_menu() {
     "Copy last log" "" "run-shell \"$(_self_cmd copy)\"" \
     "Compress logs" "" "run-shell \"$(_self_cmd compress)\"" \
     "Prune old logs" "" "run-shell \"$(_self_cmd prune)\"" \
-    "Doctor" "" "display-popup -E \"$(_self_cmd 'doctor; read -r')\""
+    "Doctor" "" "display-popup -E \"$(_self_cmd 'doctor; read -r logging_wait')\""
 }
 
 main() {

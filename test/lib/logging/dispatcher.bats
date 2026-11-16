@@ -641,7 +641,7 @@ run-shell "/p\\ a/it\\'s/logging.sh toggle"
 EXPECTED
 )"
   doctor="$(cat <<'EXPECTED'
-display-popup -E "/p\\ a/it\\'s/logging.sh doctor; read -r"
+display-popup -E "/p\\ a/it\\'s/logging.sh doctor; read -r logging_wait"
 EXPECTED
 )"
 
