@@ -34,21 +34,32 @@ publish_escape() {
   printf '%s' "${1//"${hash}"/${hash}${hash}}"
 }
 
+_hash_free() {
+  local rest="${1}" out="" piece hash="#"
+  while [[ "${rest}" == *"${hash}"* ]]; do
+    printf -v piece '%q' "${rest%%"${hash}"*}"
+    out+="${piece}\"\$(printf '%b' '\\0043')\""
+    rest="${rest#*"${hash}"}"
+  done
+  printf -v piece '%q' "${rest}"
+  printf '%s%s' "${out}" "${piece}"
+}
+
 _self_cmd() {
   shopt -u patsub_replacement 2>/dev/null || true
-  local cmd hash="#" bs='\' dq='"' dl='$' ebs='\\' edq='\"' edl='\$'
-  cmd="$(printf '%q %s' "${LOG_SELF}" "${1}")"
-  cmd="${cmd//"${hash}"/${hash}${hash}}"
+  local cmd bs='\' dq='"' dl='$' ebs='\\' edq='\"' edl='\$'
+  cmd="$(_hash_free "${LOG_SELF}") ${1}"
   cmd="${cmd//"${bs}"/${ebs}}"
   cmd="${cmd//"${dq}"/${edq}}"
   printf '%s' "${cmd//"${dl}"/${edl}}"
 }
 
 _popup_cmd() {
-  local cmd hash="#"
-  cmd="$(printf '%q ' "$@")"
-  cmd="${cmd% }"
-  printf '%s' "${cmd//"${hash}"/${hash}${hash}}"
+  local cmd="" arg
+  for arg in "$@"; do
+    cmd+="$(_hash_free "${arg}") "
+  done
+  printf '%s' "${cmd% }"
 }
 
 _prompt_template() {

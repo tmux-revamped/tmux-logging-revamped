@@ -161,7 +161,7 @@ teardown() {
   _tmux() { printf '%s\n' "$@" >> "${BATS_TEST_TMPDIR}/seam"; }
   local expected
   expected="$(cat <<'EXPECTED'
-tail -f -- /l\ o/it\'s/##d/tmux-main.log
+tail -f -- /l\ o/it\'s/"$(printf '%b' '\0043')"d/tmux-main.log
 EXPECTED
 )"
 
@@ -170,7 +170,9 @@ EXPECTED
 
   # Assert
   [[ "$(sed -n 2p "${BATS_TEST_TMPDIR}/seam")" == "-E" ]] || false
-  [[ "$(sed -n 3p "${BATS_TEST_TMPDIR}/seam")" == "${expected}" ]]
+  [[ "$(sed -n 3p "${BATS_TEST_TMPDIR}/seam")" == "${expected}" ]] || false
+  run sh -c "printf '%s\n' ${expected}"
+  [[ "${lines[3]}" == "/l o/it's/#d/tmux-main.log" ]]
 }
 
 @test "logging.sh - search with no pattern prompts through the seam" {
@@ -207,7 +209,7 @@ EXPECTED
   _tmux() { printf '%s\n' "$@" >> "${BATS_TEST_TMPDIR}/seam"; }
   local expected
   expected="$(cat <<'EXPECTED'
-/p\ a/it\'s/##x/logging.sh pick
+/p\ a/it\'s/"$(printf '%b' '\0043')"x/logging.sh pick
 EXPECTED
 )"
 
@@ -216,7 +218,9 @@ EXPECTED
 
   # Assert
   [[ "$(sed -n 2p "${BATS_TEST_TMPDIR}/seam")" == "-E" ]] || false
-  [[ "$(sed -n 3p "${BATS_TEST_TMPDIR}/seam")" == "${expected}" ]]
+  [[ "$(sed -n 3p "${BATS_TEST_TMPDIR}/seam")" == "${expected}" ]] || false
+  run sh -c "printf '%s\n' ${expected}"
+  [[ "${lines[0]}" == "/p a/it's/#x/logging.sh" ]]
 }
 
 @test "logging.sh - pick opens the chosen match in the pager at its line" {
@@ -651,4 +655,34 @@ EXPECTED
   # Assert
   [[ "$(sed -n 6p "${BATS_TEST_TMPDIR}/seam")" == "${toggle}" ]] || false
   [[ "$(tail -n 1 "${BATS_TEST_TMPDIR}/seam")" == "${doctor}" ]]
+}
+
+@test "logging.sh - a popup command carries no hash and still names a path that holds one" {
+  # Arrange
+  local command
+
+  # Act
+  command=$(_popup_cmd "/p #1/it's/logging.sh" pick)
+
+  # Assert
+  [[ "${command}" != *"#"* ]]
+  run sh -c "printf '%s\n' ${command}"
+  [[ "${lines[0]}" == "/p #1/it's/logging.sh" ]]
+  [[ "${lines[1]}" == "pick" ]]
+}
+
+@test "logging.sh - a menu command carries no hash and still names a path that holds one" {
+  # Arrange
+  local command unescaped
+  LOG_SELF="/p #1/it's/logging.sh"
+
+  # Act
+  command=$(_self_cmd toggle)
+
+  # Assert
+  [[ "${command}" != *"#"* ]]
+  unescaped=$(sed 's/\\\(["$\\]\)/\1/g' <<<"${command}")
+  run sh -c "printf '%s\n' ${unescaped}"
+  [[ "${lines[0]}" == "/p #1/it's/logging.sh" ]]
+  [[ "${lines[1]}" == "toggle" ]]
 }

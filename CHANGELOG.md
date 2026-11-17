@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with "read: arg count", so where tmux runs the popup through dash it
   closed before the report could be read. It now reads into a named
   variable, as POSIX requires.
+- The tail, picker and menu commands, run from a checkout path holding a
+  `#`, named the wrong path, because they doubled the `#` and tmux 3.6 and
+  later expand no format in a popup's command. They now write each `#`
+  through `printf '%b'`, so they read the same on every tmux version.
 
 ## [2.0.1] - 2026-10-27
 
