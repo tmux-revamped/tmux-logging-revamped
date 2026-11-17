@@ -13,12 +13,15 @@ teardown() {
 
 @test "constants.sh - exposes the plugin version" {
   # Arrange
-  local expected="2.0.1"
+  local expected headings
+  headings=$(sed -n 's/^## \[\([0-9][0-9.]*\)\].*/\1/p' "${BATS_TEST_DIRNAME}/../../../CHANGELOG.md")
+  expected="${headings%%$'\n'*}"
 
   # Act
   local actual="${LOGGING_REVAMPED_VERSION}"
 
   # Assert
+  [[ -n "${expected}" ]] || false
   [[ "${actual}" == "${expected}" ]]
 }
 
