@@ -1,0 +1,299 @@
+#!/bin/sh
+[ -n "${ZSH_VERSION:-}" ] && emulate sh
+set -eu
+
+logging_revamped_self="$0"
+case "${logging_revamped_self}" in
+*/*) ;;
+*) logging_revamped_self="$(command -v -- "${logging_revamped_self}")" ;;
+esac
+logging_revamped_lib="$(cd "${logging_revamped_self%/*}/../lib" && pwd)" || exit 1
+for logging_revamped_inherited in $(env | sed -n -e 's/^\(REVAMPED_[A-Za-z0-9_]*\)=.*/\1/p' -e 's/^\(LOGGING_REVAMPED_[A-Za-z0-9_]*_LOADED\)=.*/\1/p'); do
+  case "${logging_revamped_inherited}" in
+  REVAMPED_TEST_*) continue ;;
+  *) unset "${logging_revamped_inherited}" ;;
+  esac
+done
+REVAMPED_LIB="${logging_revamped_lib}"
+
+# shellcheck source=SCRIPTDIR/../lib/core.sh
+. "${REVAMPED_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/logging.sh
+. "${REVAMPED_LIB}/logging.sh"
+
+logging_revamped_interface() {
+  # shellcheck disable=SC2034
+  REVAMPED_UI_NAME=logging-revamped REVAMPED_UI_VERSION="${LOGGING_REVAMPED_VERSION}" REVAMPED_UI_TAGLINE="any pane, captured to a file"
+  if [ -n "${LOGGING_REVAMPED_ACCENT:-}" ]; then
+    # shellcheck disable=SC2034
+    REVAMPED_UI_ACCENT_CHOICE="${LOGGING_REVAMPED_ACCENT}" REVAMPED_UI_ACCENT_NAME=LOGGING_REVAMPED_ACCENT
+  fi
+  # shellcheck source=SCRIPTDIR/../lib/cli.sh
+  . "${REVAMPED_LIB}/cli.sh"
+  # shellcheck source=SCRIPTDIR/../lib/doctor.sh
+  . "${REVAMPED_LIB}/doctor.sh"
+}
+
+logging_revamped_usage() {
+  logging_revamped_interface
+  revamped_cli_usage_error "$1"
+}
+
+logging_revamped_help() {
+  revamped_cli_help_page <<'HELP'
+logging-revamped - capture a tmux pane to a file: live, scrollback or screen
+
+usage:
+  logging-revamped apply            bind the keys and the status indicator now
+  logging-revamped list             print every command apply would send
+  logging-revamped toggle           start or stop the live log of this pane
+  logging-revamped save [LABEL]     save the whole scrollback to a file
+  logging-revamped screenshot [LABEL]
+                                    save what the pane shows now
+  logging-revamped label            ask for a label, then save the scrollback
+  logging-revamped window           start a live log in every pane of this
+                                    window
+  logging-revamped clear            clear this pane's history
+  logging-revamped tail             follow this pane's live log in a popup
+  logging-revamped search [PATTERN] find a pattern in the logs and open a match
+  logging-revamped copy             copy the newest log to the clipboard
+  logging-revamped compress         gzip every log no pane is writing
+  logging-revamped prune            delete logs past the retention settings
+  logging-revamped status           print the indicator for this pane
+  logging-revamped doctor           check this machine
+  logging-revamped version          print the version
+  logging-revamped help             print this page
+
+options:
+  --json           list prints one JSON object
+  --theme NAME     the look: kodougu, catppuccin-mocha, catppuccin-latte,
+                   dracula, nord, gruvbox, tokyo-night or mono
+  --SETTING VALUE  any tmux option below, named with dashes, such as
+                   --path ~/logs or --rolling 1
+
+environment:
+  LOGGING_REVAMPED_SETTING  any tmux option below in capitals, such as
+                            LOGGING_REVAMPED_PATH
+  LOGGING_REVAMPED_THEME    the look, when --theme is not given
+  LOGGING_REVAMPED_ACCENT   a colour such as #CBA6F7 for the accent
+  KODOUGU_THEME             the family look, when neither is given
+  KODOUGU_ACCENT            the family accent, when the tool's is unset
+  NO_COLOR                  turn colour off
+
+tmux options:
+  @logging_revamped_menu_key        key of the logging menu (M-l)
+  @logging_revamped_toggle_key      key that starts or stops a live log (none)
+  @logging_revamped_save_key        key that saves the scrollback (none)
+  @logging_revamped_screenshot_key  key that saves the screen (none)
+  @logging_revamped_label_key       key that asks for a label and saves (none)
+  @logging_revamped_window_key      key that logs the whole window (none)
+  @logging_revamped_clear_key       key that clears the history (none)
+  @logging_revamped_tail_key        key that follows the live log (none)
+  @logging_revamped_search_key      key that searches the logs (none)
+  @logging_revamped_path            folder of the logs (~/.tmux/logs)
+  @logging_revamped_rolling         1 keeps one live log per session (0)
+  @logging_revamped_color           1 keeps colours in saved files (0)
+  @logging_revamped_output_only     1 drops prompt lines from saved files (0)
+  @logging_revamped_prompt_pattern  what a prompt line looks like, an
+                                    extended regular expression (a line
+                                    starting with #, $, % or >)
+  @logging_revamped_pager           what opens a search match (less)
+  @logging_revamped_retain_days     prune logs older than this many days (0)
+  @logging_revamped_retain_max      prune the oldest logs beyond this many (0)
+  @logging_revamped_status_on       what #{logging_status} shows while a pane
+                                    is logged (*)
+  @logging_revamped_status_off      what it shows otherwise (nothing)
+  @revamped_theme                   the family look (kodougu)
+
+notes:
+  The entry point runs apply once when tmux loads the plugin. A key set to off
+  binds nothing, and a key someone else holds is left alone and named by
+  doctor. #{logging_status} in status-left or status-right becomes a format
+  tmux draws itself, so the indicator starts no process. A live log is never
+  compressed or pruned while its pane writes it.
+
+examples:
+  logging-revamped toggle
+  logging-revamped save before-deploy
+  logging-revamped --retain-days 30 prune
+  logging-revamped doctor
+HELP
+}
+
+logging_revamped_version() {
+  logging_revamped_tmux=$(tmux -V 2>/dev/null) || logging_revamped_tmux=missing
+  printf '%s %s\n' logging-revamped "${LOGGING_REVAMPED_VERSION}"
+  printf 'tmux: %s\n' "${logging_revamped_tmux#tmux }"
+}
+
+logging_revamped_doctor_folder() {
+  logging_revamped_load
+  logging_revamped_doctor_folder_path=$(logging_revamped_dir)
+  logging_revamped_doctor_folder_base="${logging_revamped_doctor_folder_path}"
+  while [ ! -e "${logging_revamped_doctor_folder_base}" ] && [ -n "${logging_revamped_doctor_folder_base%/*}" ] && [ "${logging_revamped_doctor_folder_base}" != "${logging_revamped_doctor_folder_base%/*}" ]; do
+    logging_revamped_doctor_folder_base="${logging_revamped_doctor_folder_base%/*}"
+  done
+  if [ ! -d "${logging_revamped_doctor_folder_base}" ] || [ ! -w "${logging_revamped_doctor_folder_base}" ]; then
+    revamped_doctor_line "log folder" warn "${logging_revamped_doctor_folder_path} is not writable"
+  elif [ "${logging_revamped_doctor_folder_base}" = "${logging_revamped_doctor_folder_path}" ]; then
+    revamped_doctor_line "log folder" ok "${logging_revamped_doctor_folder_path}"
+  else
+    revamped_doctor_line "log folder" ok "${logging_revamped_doctor_folder_path}, made on the first log"
+  fi
+}
+
+logging_revamped_doctor_optional() {
+  if revamped_has_command "$1"; then
+    logging_revamped_doctor_optional_path=$(command -v "$1")
+    revamped_doctor_line "$1" ok "${logging_revamped_doctor_optional_path}"
+    return 0
+  fi
+  revamped_doctor_line "$1" warn "$2"
+}
+
+logging_revamped_doctor_keys() {
+  logging_revamped_plan
+  if [ -n "${LOGGING_REVAMPED_SKIPPED}" ]; then
+    revamped_doctor_line keys warn "already bound and left alone: ${LOGGING_REVAMPED_SKIPPED}"
+    return 0
+  fi
+  revamped_doctor_line keys ok "every key it binds is free or its own"
+}
+
+logging_revamped_doctor_settings() {
+  logging_revamped_doctor_settings_rows=$(logging_revamped_setting_rows)
+  # shellcheck disable=SC2154
+  revamped_doctor_settings "${LOGGING_REVAMPED_KINDS}" "${logging_revamped_doctor_settings_rows}"
+}
+
+logging_revamped_doctor() {
+  revamped_doctor_tmux
+  logging_revamped_doctor_folder
+  logging_revamped_doctor_optional gzip "compress needs it"
+  logging_revamped_doctor_optional fzf "search needs it to pick a match"
+  logging_revamped_doctor_settings
+  logging_revamped_doctor_keys
+  revamped_doctor_gum
+  revamped_doctor_core_tools awk sed grep tr date stat sort
+  revamped_doctor_finish
+  [ "${REVAMPED_DOCTOR_MISSING}" -eq 0 ] || exit 1
+}
+
+logging_revamped_list() {
+  logging_revamped_plan
+  if [ -n "${logging_revamped_json}" ]; then
+    logging_revamped_json
+    return 0
+  fi
+  logging_revamped_lines
+}
+
+logging_revamped_apply_command() {
+  logging_revamped_apply
+  logging_revamped_sent=$(logging_revamped_bindings)
+  case "${logging_revamped_sent}" in
+  1) printf 'Applied. 1 key is bound.\n' ;;
+  *) printf 'Applied. %s keys are bound.\n' "${logging_revamped_sent}" ;;
+  esac
+}
+
+logging_revamped_menu() {
+  revamped_cli_require_terminal
+  logging_revamped_choice=$(revamped_cli_menu "List the bindings" "Apply them now" "Check this machine" "Help")
+  case "${logging_revamped_choice}" in
+  "List the bindings") logging_revamped_list ;;
+  "Apply them now") logging_revamped_apply_command ;;
+  "Check this machine") logging_revamped_doctor ;;
+  *) logging_revamped_help ;;
+  esac
+}
+
+logging_revamped_dispatch() {
+  case "${1:-}" in
+  doctor) logging_revamped_doctor ;;
+  version | --version | -V) logging_revamped_version ;;
+  help | --help | -h) logging_revamped_help ;;
+  list) logging_revamped_list ;;
+  "") logging_revamped_menu ;;
+  *) revamped_cli_usage_error "unknown command '$1'" ;;
+  esac
+}
+
+logging_revamped_known() {
+  [ "$1" != --theme ] || return 0
+  logging_revamped_known_name=$(logging_revamped_setting_name "$1")
+  [ -n "${logging_revamped_known_name}" ] || logging_revamped_usage "unknown option '$1'"
+}
+
+logging_revamped_set() {
+  logging_revamped_set_upper=$(printf '%s\n' "$1" | tr '[:lower:]' '[:upper:]')
+  export "LOGGING_REVAMPED_${logging_revamped_set_upper}=$2"
+}
+
+logging_revamped_option() {
+  logging_revamped_option_name=$(logging_revamped_setting_name "$1")
+  [ -n "${logging_revamped_option_name}" ] || logging_revamped_usage "unknown option '$1'"
+  logging_revamped_set "${logging_revamped_option_name}" "$2"
+}
+
+logging_revamped_main() {
+  logging_revamped_theme="${LOGGING_REVAMPED_THEME:-}" logging_revamped_json="" logging_revamped_left=$# logging_revamped_rest=0
+  while [ "${logging_revamped_left}" -gt 0 ]; do
+    logging_revamped_arg="$1"
+    shift
+    logging_revamped_left=$((logging_revamped_left - 1))
+    case "${logging_revamped_rest}:${logging_revamped_arg}" in
+    1:*) set -- "$@" "${logging_revamped_arg}" ;;
+    0:--) logging_revamped_rest=1 ;;
+    0:--json) logging_revamped_json=1 ;;
+    0:-h | 0:-V | 0:--help | 0:--version) set -- "$@" "${logging_revamped_arg}" ;;
+    0:--theme=*) logging_revamped_theme="${logging_revamped_arg#--theme=}" ;;
+    0:--*=*) logging_revamped_option "${logging_revamped_arg%%=*}" "${logging_revamped_arg#*=}" ;;
+    0:--*)
+      logging_revamped_known "${logging_revamped_arg}"
+      [ "${logging_revamped_left}" -gt 0 ] || logging_revamped_usage "option '${logging_revamped_arg}' needs a value"
+      if [ "${logging_revamped_arg}" = --theme ]; then
+        logging_revamped_theme="$1"
+      else
+        logging_revamped_option "${logging_revamped_arg}" "$1"
+      fi
+      shift
+      logging_revamped_left=$((logging_revamped_left - 1))
+      ;;
+    0:-?*) logging_revamped_usage "unknown option '${logging_revamped_arg}'" ;;
+    *) set -- "$@" "${logging_revamped_arg}" ;;
+    esac
+  done
+  logging_revamped_run "${logging_revamped_theme}" "$@"
+}
+
+logging_revamped_run() {
+  logging_revamped_run_theme="$1"
+  shift
+  [ -z "${logging_revamped_json}" ] || [ "${1:-}" = list ] || logging_revamped_usage "option '--json' works only with list"
+  case "${1:-}" in
+  apply) logging_revamped_apply ;;
+  toggle) logging_revamped_toggle ;;
+  save) logging_revamped_save "${2:-}" ;;
+  screenshot) logging_revamped_screenshot "${2:-}" ;;
+  label) logging_revamped_label ;;
+  label-reply) logging_revamped_label_reply ;;
+  window) logging_revamped_window ;;
+  clear) logging_revamped_clear ;;
+  tail) logging_revamped_tail ;;
+  search) logging_revamped_search "${2:-}" ;;
+  search-reply) logging_revamped_search_reply ;;
+  pick) logging_revamped_pick ;;
+  copy) logging_revamped_copy ;;
+  compress) logging_revamped_compress ;;
+  prune) logging_revamped_prune ;;
+  status) logging_revamped_status ;;
+  *)
+    logging_revamped_interface
+    revamped_cli_start "${logging_revamped_run_theme}"
+    logging_revamped_dispatch "$@"
+    ;;
+  esac
+}
+
+logging_revamped_main "$@"

@@ -1,0 +1,3 @@
+$ logging-revamped frobnicate
+logging-revamped: unknown command 'frobnicate'. run 'logging-revamped help' for usage.
+exit 1

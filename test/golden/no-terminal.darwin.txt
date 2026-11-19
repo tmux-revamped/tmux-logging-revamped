@@ -1,0 +1,3 @@
+$ logging-revamped
+logging-revamped: no command given. run 'logging-revamped help' for usage.
+exit 1

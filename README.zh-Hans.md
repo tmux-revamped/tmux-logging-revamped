@@ -4,77 +4,55 @@
 
 <strong>将任意窗格保存到文件：实时日志、完整回滚缓冲区或一次性截图。</strong>
 
-[English](README.md) | [日本語](README.ja.md) | 简体中文 | [繁體中文（香港）](README.zh-HK.md)
+[English](README.md) &nbsp;|&nbsp; [日本語](README.ja.md) &nbsp;|&nbsp; 简体中文 &nbsp;|&nbsp; [繁體中文（香港）](README.zh-HK.md)
 
-[![family](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-logging-revamped/family.yml?branch=main&style=flat-square&label=family)](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/family.yml)
-[![tests](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-logging-revamped/tests.yml?branch=main&style=flat-square&label=tests)](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/tests.yml)
+[![ci](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-logging-revamped/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/tmux-revamped/tmux-logging-revamped?style=flat-square&label=release)](https://github.com/tmux-revamped/tmux-logging-revamped/releases/latest)
 [![openssf scorecard](https://img.shields.io/ossf-scorecard/github.com/tmux-revamped/tmux-logging-revamped?style=flat-square&label=openssf%20scorecard)](https://scorecard.dev/viewer/?uri=github.com/tmux-revamped/tmux-logging-revamped)
 [![license](https://img.shields.io/github/license/tmux-revamped/tmux-logging-revamped?style=flat-square&label=license)](LICENSE)
 
 <p align="center">
-  <a href="#what-it-does">功能</a> |
-  <a href="#installation">安装</a> |
-  <a href="#usage">用法</a> |
-  <a href="#configuration">配置</a> |
-  <a href="#key-bindings">按键绑定</a> |
-  <a href="#how-it-works">工作原理</a>
+  <a href="#快速开始"><strong>快速开始</strong></a> &nbsp;|&nbsp;
+  <a href="#用法">用法</a> &nbsp;|&nbsp;
+  <a href="#工作原理">工作原理</a> &nbsp;|&nbsp;
+  <a href="#界面">界面</a>
 </p>
 
 </div>
 
-**12** 个菜单操作，**19** 个选项，默认只绑定 **1** 个按键，支持 tmux **3.2** 及以上版本。
+<p align="center">
+  <img src="screens/hero.gif" alt="logging-revamped 从菜单开始实时日志，在弹出窗口中跟随它，并按标签保存回滚内容" width="800">
+</p>
 
----
-
-<a id="what-it-does"></a>
-
-## 功能
+```console
+$ logging-revamped save before-deploy
+$ ls ~/.tmux/logs
+tmux-main-0-0-20261117-092106-before-deploy.history
+```
 
 插件以三种方式把 tmux 窗格写入文件：随输出不断增长的实时日志、一次性保存的完整回滚缓冲区，以及当前可见的屏幕。它还能跟踪、搜索、复制、压缩和清理这些文件。
 
-| 操作 | 作用 |
-|:-----|:-----|
-| 切换实时日志 | 用 `pipe-pane` 开始或停止把当前窗格写入文件 |
-| 保存回滚缓冲区 | 把整个窗格历史写入 `.history` 文件 |
-| 保存屏幕 | 把可见屏幕写入 `.screen` 文件 |
-| 带标签保存 | 询问一个标签，加入文件名，然后保存回滚缓冲区 |
-| 记录整个窗口 | 为当前窗口的每个窗格开始实时日志 |
-| 清除历史 | 清除当前窗格的回滚缓冲区 |
-| 实时跟踪 | 在弹出窗口中用 `tail -f` 跟踪当前窗格的实时日志 |
-| 搜索日志 | 在日志目录中 grep，在 fzf 中选择匹配项，并在分页器中打开到对应行 |
-| 复制最新日志 | 把最新的未压缩日志载入 tmux 缓冲区和终端剪贴板 |
-| 压缩日志 | 对所有没有窗格仍在写入的日志运行 `gzip` |
-| 清理旧日志 | 按保留选项的设置，按时间或数量删除日志 |
-| 诊断 | 显示平台、日志路径及其是否可写、模式选项以及找到了哪些工具 |
+---
 
-文件名由会话、窗口和窗格、`YYYYmmdd-HHMMSS` 格式的时间戳以及类型组成，例如 `tmux-main-1-0-20260622-143005.history`。每一部分都只保留字母、数字、`.`、`_` 和 `-`，所以名为 `feature/login` 的会话也不会跑出日志目录。
+## 快速开始
 
-<a id="requirements"></a>
+### 前提条件
 
-## 环境要求
+| 工具 | 版本 | 用途 |
+|:-----|:--------|:---------|
+| tmux | 3.2 或更高 | 家族的最低版本：弹出窗口、窗格选项和提示中的 `%%%` 都需要它 |
+| fzf | 可选 | 从搜索结果中选择一项 |
+| gzip | 可选 | 用于 `compress` |
+| 分页器 | 可选 | 打开搜索结果，默认是 `less` |
+| gum | 可选 | `logging-revamped` 的菜单、表格和颜色；没有它，所有命令都输出纯文本 |
 
-| 依赖 | 版本 |
-|:-----|:-----|
-| tmux | 3.2 及以上 |
-| bash | 3.2 及以上 |
-| fzf | 任意版本，仅搜索需要 |
-| gzip | 任意版本，仅压缩需要 |
-| less | 任意版本，搜索的默认分页器 |
-
-可在 Linux 和 macOS 上运行，支持 BSD、GNU 或 uutils coreutils。实时跟踪、搜索和诊断在 `display-popup` 中打开，复制使用 `load-buffer -w`，两者都需要 tmux 3.2。
-
-<a id="installation"></a>
-
-## 安装
-
-使用 [TPM](https://github.com/tmux-plugins/tpm) 时，把插件加入 `~/.tmux.conf`，然后按 `prefix + I`：
+### 安装
 
 ```tmux
 set -g @plugin 'tmux-revamped/tmux-logging-revamped'
 ```
 
-手动安装时，克隆仓库，并在 `~/.tmux.conf` 中运行入口脚本：
+然后按 `prefix + I`。不用 TPM 时，克隆仓库，并在 `~/.tmux.conf` 中运行它的入口文件：
 
 ```bash
 git clone https://github.com/tmux-revamped/tmux-logging-revamped ~/.tmux/plugins/tmux-logging-revamped
@@ -84,7 +62,13 @@ git clone https://github.com/tmux-revamped/tmux-logging-revamped ~/.tmux/plugins
 run-shell ~/.tmux/plugins/tmux-logging-revamped/logging-revamped.tmux
 ```
 
-<a id="usage"></a>
+在克隆的目录中运行 `make install`，还会把 `logging-revamped` 放进 `~/.local/bin`，把它的 man 手册和补全放在 `~/.local/share` 下。
+
+### 验证
+
+```bash
+~/.tmux/plugins/tmux-logging-revamped/bin/logging-revamped doctor
+```
 
 ## 用法
 
@@ -109,13 +93,30 @@ set -g @logging_revamped_retain_days '14'
 set -g @logging_revamped_output_only '1'
 ```
 
-只有在菜单中选择 Prune old logs 时才会执行清理。
+清理不会自动执行：在菜单中选择 Prune old logs，或运行 `logging-revamped prune`。
 
-<a id="configuration"></a>
+| 命令 | 作用 |
+|:--------|:-------------|
+| `logging-revamped apply` | 立即绑定按键和状态指示；插件加载时入口点会运行它 |
+| `logging-revamped list` | 打印 `apply` 会发送的每条命令，不做任何修改；`--json` 输出一个对象 |
+| `logging-revamped toggle` | 用 `pipe-pane` 开始或停止把当前窗格写入文件 |
+| `logging-revamped save [LABEL]` | 把整个窗格历史写入 `.history` 文件 |
+| `logging-revamped screenshot [LABEL]` | 把可见屏幕写入 `.screen` 文件 |
+| `logging-revamped label` | 询问一个标签，加入文件名，然后保存回滚缓冲区 |
+| `logging-revamped window` | 为当前窗口的每个窗格开始实时日志 |
+| `logging-revamped clear` | 清除当前窗格的回滚缓冲区 |
+| `logging-revamped tail` | 在弹出窗口中用 `tail -f` 跟踪当前窗格的实时日志 |
+| `logging-revamped search [PATTERN]` | 在日志目录中 grep，在 fzf 中选择匹配项，并在分页器中打开到对应行 |
+| `logging-revamped copy` | 把最新的未压缩日志载入 tmux 缓冲区和终端剪贴板 |
+| `logging-revamped compress` | 对所有没有窗格仍在写入的日志运行 `gzip` |
+| `logging-revamped prune` | 按保留选项的设置，按时间或数量删除日志 |
+| `logging-revamped status` | 打印此窗格的指示文字 |
+| `logging-revamped doctor` | 每个依赖一行，包括日志文件夹、gzip、fzf 和保持不动的按键 |
+| `logging-revamped version` | 版本，然后是 tmux 版本 |
+| `logging-revamped help` | 帮助页；`man logging-revamped` 记录相同的命令和设置 |
+| `logging-revamped` | 在终端上显示菜单 |
 
-## 配置
-
-### 行为
+文件名由会话、窗口和窗格、`YYYYmmdd-HHMMSS` 格式的时间戳以及类型组成，例如 `tmux-main-1-0-20260622-143005.history`。每一部分都只保留字母、数字、`.`、`_` 和 `-`，所以名为 `feature/login` 的会话也不会跑出日志目录。
 
 | 选项 | 默认值 | 含义 |
 |:-----|:-------|:-----|
@@ -129,8 +130,6 @@ set -g @logging_revamped_output_only '1'
 | `@logging_revamped_pager` | `less` | 打开搜索匹配项的分页器，以 `<pager> +<line> -- <file>` 方式调用 |
 | `@logging_revamped_status_on` | `*` | 当前窗格正在记录时 `#{logging_status}` 显示的文字 |
 | `@logging_revamped_status_off` | 空 | 其他情况下 `#{logging_status}` 显示的文字 |
-
-### 按键
 
 每个按键选项接受一个 tmux 按键名。值为空或 `off` 时不绑定任何按键。
 
@@ -148,69 +147,115 @@ set -g @logging_revamped_output_only '1'
 
 复制、压缩、清理和诊断没有按键选项，从菜单中使用。
 
-### 内部状态
+每个选项也可以用带连字符的命令选项（例如 `--path ~/logs`）和环境变量（例如 `LOGGING_REVAMPED_PATH`）设置；命令行优先于环境变量，环境变量优先于 tmux 选项。空的 tmux 选项表示使用默认值。`doctor` 会指出值无法识别的设置。传给 `apply` 的选项会随每个绑定一起生效。
 
-以下选项由插件自己写入，请勿设置。
+插件自己写入三个选项：窗格选项 `@logging_revamped_file` 是正在记录的窗格写入的文件，全局的 `@logging_revamped_prompt` 和 `@logging_revamped_search_pattern` 把输入的回复交给工具。
 
-| 选项 | 保存内容 |
-|:-----|:---------|
-| `@logging_revamped_file_<pane>` | 正在实时记录的窗格写入的文件，以窗格 ID 为键，除字母和数字外的字符都替换为 `_`，例如 `%3` 对应 `_3` |
-| `@logging_revamped_search_pattern` | 从搜索提示传给选择器弹出窗口的搜索模式 |
-| `@logging_revamped_prompt` | 在标签或搜索提示中输入的文字，读取一次后删除 |
-| `@logging_status` | 当前的状态文字，只在运行 `src/logging.sh status` 时写入；状态栏不读取它 |
-
-<a id="key-bindings"></a>
-
-## 按键绑定
-
-| 按键 | 操作 | 默认 |
-|:-----|:-----|:-----|
-| `prefix + M-l` | 日志菜单 | 已绑定 |
-| `@logging_revamped_<action>_key` | 按键表中对应的操作 | 未绑定 |
-
-2.0.0 版把菜单从 `M-m` 移到 `M-l`，并取消了其他所有按键的绑定。要恢复旧的布局：
-
-```tmux
-set -g @logging_revamped_menu_key 'M-m'
-set -g @logging_revamped_toggle_key 'P'
-set -g @logging_revamped_save_key 'M-p'
-set -g @logging_revamped_screenshot_key 'M-P'
-set -g @logging_revamped_label_key 'M-n'
-set -g @logging_revamped_window_key 'M-w'
-set -g @logging_revamped_clear_key 'M-c'
-set -g @logging_revamped_tail_key 'M-t'
-set -g @logging_revamped_search_key 'M-f'
-```
-
-<a id="how-it-works"></a>
+<a id="工作原理"></a>
 
 ## 工作原理
 
-tmux 加载插件时，[`logging-revamped.tmux`](logging-revamped.tmux) 运行一次。它把每个已配置的按键绑定到带有 [`src/logging.sh`](src/logging.sh) 和操作名的 `run-shell`，所以在按下按键之前什么都不会运行。
+[`logging-revamped.tmux`](logging-revamped.tmux) 在 tmux 加载插件时运行一次 `bin/logging-revamped apply`。它用一次 tmux 调用，把每个已配置的按键绑定到带有工具和动作名的 `run-shell`，把菜单键绑定到菜单本身，所以在你按键之前什么都不会运行。
 
 它还会把 `status-left` 和 `status-right` 中的 `#{logging_status}` 替换为由两个状态选项构成的 `#{?pane_pipe,on,off}` 格式。这个格式由 tmux 自己绘制，所以指示器不会在每次重绘时启动进程。请在插件加载前设置状态选项，或在修改后重新加载配置。
 
 实时日志就是在 umask 077 下运行 `cat >>` 写入文件的 `pipe-pane`。保存回滚缓冲区和屏幕使用 `capture-pane`，并去掉每行末尾的空白。标签和搜索提示通过 `%%%` 把输入的文字交给插件选项，所以回复中的引号和 `#()` 既不会进入 shell，也不会进入格式。
 
-文件命名、路径展开和清理对象的选择都是 [`src/lib/logging/logging.sh`](src/lib/logging/logging.sh) 中的纯函数。诊断报告位于 [`src/lib/logging/doctor.sh`](src/lib/logging/doctor.sh)。
+<a id="界面"></a>
 
-<a id="development"></a>
+## 界面
+
+<details>
+<summary>所有界面，在真实的 tmux 中用 <code>make screens</code> 录制，每个按键显示在状态栏上</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/logging-menu.png" alt="logging-revamped：prefix M-l 打开日志菜单"><br><sub><code>prefix M-l</code> 打开日志菜单，来自 <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/live.png" alt="logging-revamped：实时日志开始，状态栏随之提示"><br><sub>实时日志开始，状态栏随之提示，来自 <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/tail.png" alt="logging-revamped：prefix M-t 在弹出窗口中跟随实时日志"><br><sub><code>prefix M-t</code> 在弹出窗口中跟随实时日志，来自 <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/saved.png" alt="logging-revamped：save 按标签保存回滚内容"><br><sub><code>save</code> 按标签保存回滚内容，来自 <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="logging-revamped：菜单"><br><sub>菜单，来自 <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="logging-revamped：doctor"><br><sub><code>doctor</code>，来自 <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/label.png" alt="logging-revamped：标签键询问标签"><br><sub>标签键询问标签，来自 <code>keys.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/search.png" alt="logging-revamped：搜索键列出所有匹配"><br><sub>搜索键列出所有匹配，来自 <code>keys.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/match.png" alt="logging-revamped：选中的匹配在分页器中定位到所在行"><br><sub>选中的匹配在分页器中定位到所在行，来自 <code>keys.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/window.png" alt="logging-revamped：窗口键记录每个窗格"><br><sub>窗口键记录每个窗格，来自 <code>keys.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/screenshot.png" alt="logging-revamped：从菜单保存屏幕"><br><sub>从菜单保存屏幕，来自 <code>keys.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/clear.png" alt="logging-revamped：从菜单清除历史"><br><sub>从菜单清除历史，来自 <code>keys.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/copy.png" alt="logging-revamped：从菜单复制最新日志"><br><sub>从菜单复制最新日志，来自 <code>keys.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/compress.png" alt="logging-revamped：从菜单压缩日志"><br><sub>从菜单压缩日志，来自 <code>keys.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/prune.png" alt="logging-revamped：从菜单清理旧日志"><br><sub>从菜单清理旧日志，来自 <code>keys.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/list.png" alt="logging-revamped：list 打印每个绑定"><br><sub><code>list</code> 打印每个绑定，来自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/status.png" alt="logging-revamped：status"><br><sub><code>status</code>，来自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/plain-menu.png" alt="logging-revamped：没有 gum 的菜单"><br><sub>没有 gum 的菜单，来自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/plain-doctor.png" alt="logging-revamped：从菜单运行 doctor"><br><sub>从菜单运行 <code>doctor</code>，来自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/version.png" alt="logging-revamped：版本"><br><sub>版本，来自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/error.png" alt="logging-revamped：未知命令"><br><sub>未知命令，来自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="logging-revamped：六种主题下的标题"><br><sub>六种主题下的标题，来自 <code>themes.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help.png" alt="logging-revamped：帮助页"><br><sub>帮助页，来自 <code>help.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/accent.png" alt="logging-revamped：来自 LOGGING_REVAMPED_ACCENT 的强调色"><br><sub>来自 <code>LOGGING_REVAMPED_ACCENT</code> 的强调色，来自 <code>stills.tape</code></sub></td>
+</tr>
+</table>
+
+</details>
+
+## 可移植性
+
+插件是 POSIX `sh`。CI 在下面每一行上运行全部测试。
+
+| Shell | 状态 |
+|:------|:-------|
+| `dash`、macOS 上的 `/bin/sh` | 支持 |
+| `bash` 3.2 和 5.x、系统自带的 `zsh` 和 Homebrew 的 `zsh` | 支持 |
+
+| 系统 | 状态 |
+|:-------|:-------|
+| macOS | Apple Silicon 和 Intel 上的 Tahoe，使用系统自带的工具、Homebrew 的 GNU 工具和 Homebrew 的 uutils |
+| Linux | x86_64 和 arm64 上的 Ubuntu 26.04，使用 GNU coreutils、uutils 和 BusyBox |
 
 ## 开发
 
-| 命令 | 作用 |
-|:-----|:-----|
-| `make test` | 运行 bats 测试套件 |
-| `make lint` | 对所有 shell 文件运行 shellcheck |
-| `make coverage` | 在 Linux 上用 kcov 测量行覆盖率，低于 95% 时失败 |
+| 命令 | 运行内容 |
+|:--------|:-------------|
+| `make fmt` | 对每个脚本运行 shfmt `-i 2` |
+| `make lint` | shfmt、ShellCheck、mandoc、yamllint 和 actionlint，零告警 |
+| `make test` | 在系统 `sh` 下运行 bats 测试 |
+| `make test-all` | 在每个已安装的 shell 下运行测试，macOS 上包括 bash 和 zsh 的两种构建 |
+| `make test-linux` | 在 Ubuntu 容器中运行测试 |
+| `make coverage` | 在这台 Mac 和 Ubuntu 容器中运行 bashcov，合并后以 100% 为门槛 |
+| `make screens` | 用 VHS 在 tmux 中从真实插件录制上面的界面，在 macOS 上运行 |
+| `make install` | 把命令、man 手册和补全安装到 `PREFIX` 下 |
 
-变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+在 macOS 上，运行 `brew bundle` 会根据 [`Brewfile`](Brewfile) 安装这些目标用到的所有工具。
 
-<a id="license"></a>
+提交遵循 Conventional Commits 格式，直接进入 `main`。`main` 上的 `ci` 通过后，`release.yml` 运行 semantic-release：自上一个标签以来的每个 `feat` 或 `fix` 都会发布新版本，更新版本常量，并把说明写进 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 许可证
 
-[MIT](LICENSE)
+[MIT](LICENSE)，copyright Gustavo Franco。
 
 <!-- family:begin -->
 

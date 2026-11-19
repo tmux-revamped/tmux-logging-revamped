@@ -1,0 +1,234 @@
+.TH LOGGING-REVAMPED 1 "2026-11-17" "logging-revamped" "User Commands"
+.SH NAME
+logging-revamped \- capture a tmux pane to a file: live, scrollback or screen
+.SH SYNOPSIS
+.B logging-revamped
+.RI [ options ]
+.I command
+.RI [ argument ]
+.SH DESCRIPTION
+.B logging-revamped
+writes a tmux pane to a file in three ways: a live log that grows as output
+arrives, the whole scrollback at once, or what the pane shows now. It also
+follows, searches, copies, compresses and prunes those files. The entry point
+.B logging-revamped.tmux
+runs
+.B apply
+once when tmux loads the plugin, which binds the menu key and every action
+key that is set, in one tmux call. Nothing runs until a key is pressed.
+.PP
+A file is named after the session, window and pane, a timestamp and its kind,
+such as tmux-main-1-0-20260622-143005.history, with every character other
+than a letter, a digit, a dot, an underscore or a dash written as a dash.
+.PP
+Run with no command on a terminal, it offers a menu.
+.SH COMMANDS
+.TP
+.B apply
+Bind the keys and the status indicator now.
+.TP
+.B list
+Print every tmux command apply would send, one per line, and change nothing.
+.TP
+.B toggle
+Start or stop the live log of this pane.
+.TP
+.BI save " \fR[\fIlabel\fR]"
+Save the whole scrollback to a file, with the label in its name when one is
+given.
+.TP
+.BI screenshot " \fR[\fIlabel\fR]"
+Save what the pane shows now.
+.TP
+.B label
+Ask for a label in a tmux prompt, then save the scrollback under it.
+.TP
+.B window
+Start a live log in every pane of this window.
+.TP
+.B clear
+Clear the history of this pane.
+.TP
+.B tail
+Follow the live log of this pane in a popup.
+.TP
+.BI search " \fR[\fIpattern\fR]"
+Find a pattern in the plain logs, pick a match with fzf and open it at its
+line in the pager. With no pattern it asks for one.
+.TP
+.B copy
+Copy the newest plain log to a tmux buffer and the clipboard.
+.TP
+.B compress
+gzip every plain log no pane is writing.
+.TP
+.B prune
+Delete the logs past the retention settings, never one a pane is writing.
+.TP
+.B status
+Print the indicator text for this pane.
+.TP
+.B doctor
+Print one row per dependency: tmux, the log folder, gzip, fzf, the keys it
+found bound, gum and the core tools.
+A settings row names any setting whose value it does not know.
+Exits 1 only when a required tool is
+missing.
+.TP
+.B version
+Print the version, then the tmux version.
+.TP
+.B help
+Print the help page.
+.SH OPTIONS
+.TP
+.B \-\-json
+.B list
+prints one JSON object.
+.TP
+.BI \-\-theme " name"
+Colours of the terminal interface:
+.BR kodougu ,
+.BR catppuccin\-mocha ,
+.BR catppuccin\-latte ,
+.BR dracula ,
+.BR nord ,
+.BR gruvbox ,
+.B tokyo\-night
+or
+.BR mono .
+The default is
+.BR kodougu .
+.TP
+.BI \-\- setting " value"
+Any tmux option below, named with dashes, such as
+.B \-\-path
+or
+.BR \-\-retain\-days .
+It also takes the form
+.IR \-\-setting = value ,
+and outranks the environment and the tmux option. Given to
+.BR apply ,
+it rides on every binding.
+.SH ENVIRONMENT
+.TP
+.BI LOGGING_REVAMPED_ SETTING
+Any tmux option below in capitals, such as
+.BR LOGGING_REVAMPED_PATH .
+It outranks the tmux option.
+.TP
+.B LOGGING_REVAMPED_THEME
+The theme when
+.B \-\-theme
+is not given.
+.TP
+.B LOGGING_REVAMPED_ACCENT
+A colour such as #CBA6F7 that replaces the accent of the theme.
+.TP
+.B KODOUGU_THEME
+The theme of every kodougu and tmux-revamped tool, when neither
+.B \-\-theme
+nor
+.B LOGGING_REVAMPED_THEME
+is set.
+.TP
+.B KODOUGU_ACCENT
+The accent of every kodougu and tmux-revamped tool, when
+.B LOGGING_REVAMPED_ACCENT
+is not set.
+.TP
+.B NO_COLOR
+Turns colour off in every theme.
+.SH TMUX OPTIONS
+An empty tmux option means its default. A key set to off binds nothing.
+.TP
+.B @logging_revamped_menu_key
+The prefix key that opens the logging menu. off binds nothing. The default is
+M\-l, left alone when someone else holds it.
+.TP
+.B @logging_revamped_toggle_key
+The prefix key that starts or stops a live log. The default is none.
+.TP
+.B @logging_revamped_save_key
+The prefix key that saves the scrollback. The default is none.
+.TP
+.B @logging_revamped_screenshot_key
+The prefix key that saves the screen. The default is none.
+.TP
+.B @logging_revamped_label_key
+The prefix key that asks for a label and saves the scrollback. The default is
+none.
+.TP
+.B @logging_revamped_window_key
+The prefix key that starts a live log in every pane of the window. The default
+is none.
+.TP
+.B @logging_revamped_clear_key
+The prefix key that clears the pane history. The default is none.
+.TP
+.B @logging_revamped_tail_key
+The prefix key that follows the live log in a popup. The default is none.
+.TP
+.B @logging_revamped_search_key
+The prefix key that searches the logs. The default is none.
+.TP
+.B @logging_revamped_path
+Folder of every file, made with mode 700 when first needed. A leading ~ is
+expanded. The default is ~/.tmux/logs.
+.TP
+.B @logging_revamped_rolling
+1 makes a live log append to one file per session. The default is 0.
+.TP
+.B @logging_revamped_color
+1 keeps the colour sequences in a saved scrollback or screen. The default is
+0.
+.TP
+.B @logging_revamped_output_only
+1 drops the lines that match the prompt pattern from a saved scrollback or
+screen. The default is 0.
+.TP
+.B @logging_revamped_prompt_pattern
+An extended regular expression for the lines output\-only drops. The default
+matches a line that starts with #, $, % or >.
+.TP
+.B @logging_revamped_pager
+What opens a search match, run as pager +line \-\- file. The default is less.
+.TP
+.B @logging_revamped_retain_days
+Above 0, prune deletes plain logs older than this many days. The default is 0.
+.TP
+.B @logging_revamped_retain_max
+Above 0, prune keeps only this many of the newest logs. The default is 0.
+.TP
+.B @logging_revamped_status_on
+What the status indicator shows while the pane is logged. The default is *.
+.TP
+.B @logging_revamped_status_off
+What it shows otherwise. The default is nothing.
+.TP
+.B @revamped_theme
+The theme of every tmux-revamped tool, when nothing else sets one. The default
+is
+.BR kodougu .
+.PP
+The placeholder #{logging_status} in status-left or status-right becomes a
+format tmux draws itself. The plugin writes three options itself: the pane
+option
+.BR @logging_revamped_file ,
+the file a logged pane writes to, and the global
+.B @logging_revamped_prompt
+and
+.BR @logging_revamped_search_pattern ,
+which carry a typed reply to the tool.
+.SH FILES
+.TP
+.I ~/.tmux/logs
+The default folder of the logs.
+.SH EXIT STATUS
+0 on success, 1 on any failure.
+.SH SEE ALSO
+.BR tmux (1),
+.BR fzf (1),
+.BR gzip (1),
+.BR less (1),
+.BR gum (1)

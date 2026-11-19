@@ -4,77 +4,55 @@
 
 <strong>任意のペインをファイルに保存します。ライブのログ記録、スクロールバック全体、1 回限りのスクリーンショットに対応します。</strong>
 
-[English](README.md) | 日本語 | [简体中文](README.zh-Hans.md) | [繁體中文（香港）](README.zh-HK.md)
+[English](README.md) &nbsp;|&nbsp; 日本語 &nbsp;|&nbsp; [简体中文](README.zh-Hans.md) &nbsp;|&nbsp; [繁體中文（香港）](README.zh-HK.md)
 
-[![family](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-logging-revamped/family.yml?branch=main&style=flat-square&label=family)](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/family.yml)
-[![tests](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-logging-revamped/tests.yml?branch=main&style=flat-square&label=tests)](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/tests.yml)
+[![ci](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-logging-revamped/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/tmux-revamped/tmux-logging-revamped/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/tmux-revamped/tmux-logging-revamped?style=flat-square&label=release)](https://github.com/tmux-revamped/tmux-logging-revamped/releases/latest)
 [![openssf scorecard](https://img.shields.io/ossf-scorecard/github.com/tmux-revamped/tmux-logging-revamped?style=flat-square&label=openssf%20scorecard)](https://scorecard.dev/viewer/?uri=github.com/tmux-revamped/tmux-logging-revamped)
 [![license](https://img.shields.io/github/license/tmux-revamped/tmux-logging-revamped?style=flat-square&label=license)](LICENSE)
 
 <p align="center">
-  <a href="#what-it-does">機能</a> |
-  <a href="#installation">インストール</a> |
-  <a href="#usage">使い方</a> |
-  <a href="#configuration">設定</a> |
-  <a href="#key-bindings">キーバインド</a> |
-  <a href="#how-it-works">仕組み</a>
+  <a href="#クイックスタート"><strong>クイックスタート</strong></a> &nbsp;|&nbsp;
+  <a href="#使い方">使い方</a> &nbsp;|&nbsp;
+  <a href="#仕組み">仕組み</a> &nbsp;|&nbsp;
+  <a href="#画面">画面</a>
 </p>
 
 </div>
 
-メニューの操作 **12** 個、オプション **19** 個、既定で割り当てるキーは **1** つ、tmux **3.2** 以降に対応します。
+<p align="center">
+  <img src="screens/hero.gif" alt="メニューからライブログを始め、ポップアップで追い、ラベルを付けてスクロールバックを保存する logging-revamped" width="800">
+</p>
 
----
-
-<a id="what-it-does"></a>
-
-## 機能
+```console
+$ logging-revamped save before-deploy
+$ ls ~/.tmux/logs
+tmux-main-0-0-20261117-092106-before-deploy.history
+```
 
 このプラグインは tmux のペインを 3 つの方法でファイルに書き出します。出力に合わせて増えていくライブのログ、スクロールバック全体の一括保存、表示中の画面の保存です。保存したファイルの追跡、検索、コピー、圧縮、削除もできます。
 
-| 操作 | 内容 |
-|:-----|:-----|
-| ライブログの切り替え | `pipe-pane` によるアクティブなペインからファイルへの書き出しを開始または停止します |
-| スクロールバックの保存 | ペインの履歴全体を `.history` ファイルに書き出します |
-| 画面の保存 | 表示中の画面を `.screen` ファイルに書き出します |
-| ラベル付きの保存 | ラベルを入力させてファイル名に加え、スクロールバックを保存します |
-| ウィンドウ全体のログ | 現在のウィンドウのすべてのペインでライブログを開始します |
-| 履歴の消去 | アクティブなペインのスクロールバックを消去します |
-| ライブの追跡 | アクティブなペインのライブログをポップアップ内の `tail -f` で追います |
-| ログの検索 | ログのディレクトリを grep し、fzf で一致を選ぶと、その行をページャーで開きます |
-| 最新ログのコピー | 圧縮されていない最新のログを tmux のバッファと端末のクリップボードに読み込みます |
-| ログの圧縮 | どのペインも書き込んでいないログすべてに `gzip` を実行します |
-| 古いログの削除 | 保持期間のオプションに従い、日数または件数でログを削除します |
-| 診断 | プラットフォーム、ログのパスと書き込み可否、モードのオプション、見つかったツールを表示します |
+---
 
-ファイル名は、セッション、ウィンドウ、ペイン、`YYYYmmdd-HHMMSS` 形式のタイムスタンプ、種類から作られます。例：`tmux-main-1-0-20260622-143005.history`。各部分は英数字、`.`、`_`、`-` だけに変換されるため、`feature/login` という名前のセッションでもログのディレクトリの外に出ません。
+## クイックスタート
 
-<a id="requirements"></a>
+### 前提条件
 
-## 動作要件
+| ツール | バージョン | 用途 |
+|:-----|:--------|:---------|
+| tmux | 3.2 以降 | ファミリー共通の最低バージョン。ポップアップ、ペインのオプション、プロンプトの `%%%` に必要です |
+| fzf | 任意 | 検索結果から 1 つ選びます |
+| gzip | 任意 | `compress` 用 |
+| ページャー | 任意 | 検索結果を開きます。既定は `less` |
+| gum | 任意 | `logging-revamped` のメニュー、表、色。なくてもすべてのコマンドがプレーンテキストで動きます |
 
-| 要件 | バージョン |
-|:-----|:-----------|
-| tmux | 3.2 以降 |
-| bash | 3.2 以降 |
-| fzf | 任意のバージョン、検索でのみ使用 |
-| gzip | 任意のバージョン、圧縮でのみ使用 |
-| less | 任意のバージョン、検索の既定のページャー |
-
-Linux と macOS で、BSD、GNU、uutils のいずれの coreutils でも動作します。ライブの追跡、検索、診断は `display-popup` で開き、コピーは `load-buffer -w` を使います。どちらも tmux 3.2 が必要です。
-
-<a id="installation"></a>
-
-## インストール
-
-[TPM](https://github.com/tmux-plugins/tpm) を使う場合は、`~/.tmux.conf` にプラグインを追加して `prefix + I` を押します。
+### インストール
 
 ```tmux
 set -g @plugin 'tmux-revamped/tmux-logging-revamped'
 ```
 
-手動でインストールする場合は、リポジトリをクローンし、`~/.tmux.conf` からエントリポイントを実行します。
+続けて `prefix + I` を押します。TPM を使わない場合は、リポジトリをクローンし、`~/.tmux.conf` からエントリーポイントを実行します。
 
 ```bash
 git clone https://github.com/tmux-revamped/tmux-logging-revamped ~/.tmux/plugins/tmux-logging-revamped
@@ -84,7 +62,13 @@ git clone https://github.com/tmux-revamped/tmux-logging-revamped ~/.tmux/plugins
 run-shell ~/.tmux/plugins/tmux-logging-revamped/logging-revamped.tmux
 ```
 
-<a id="usage"></a>
+クローンで `make install` を実行すると、`logging-revamped` が `~/.local/bin` に、manページと補完が `~/.local/share` の下に入ります。
+
+### 確認
+
+```bash
+~/.tmux/plugins/tmux-logging-revamped/bin/logging-revamped doctor
+```
 
 ## 使い方
 
@@ -109,13 +93,30 @@ set -g @logging_revamped_retain_days '14'
 set -g @logging_revamped_output_only '1'
 ```
 
-削除はメニューで「Prune old logs」を選んだときだけ実行されます。
+削除が自動で実行されることはありません。メニューで「Prune old logs」を選ぶか、`logging-revamped prune` を実行します。
 
-<a id="configuration"></a>
+| コマンド | 動作 |
+|:--------|:-------------|
+| `logging-revamped apply` | キーとステータス表示を今すぐ割り当てます。プラグインの読み込み時にエントリーポイントが実行します |
+| `logging-revamped list` | `apply` が送るコマンドをすべて表示し、何も変更しません。`--json` で 1 つのオブジェクトを出力します |
+| `logging-revamped toggle` | `pipe-pane` によるアクティブなペインからファイルへの書き出しを開始または停止します |
+| `logging-revamped save [LABEL]` | ペインの履歴全体を `.history` ファイルに書き出します |
+| `logging-revamped screenshot [LABEL]` | 表示中の画面を `.screen` ファイルに書き出します |
+| `logging-revamped label` | ラベルを入力させてファイル名に加え、スクロールバックを保存します |
+| `logging-revamped window` | 現在のウィンドウのすべてのペインでライブログを開始します |
+| `logging-revamped clear` | アクティブなペインのスクロールバックを消去します |
+| `logging-revamped tail` | アクティブなペインのライブログをポップアップ内の `tail -f` で追います |
+| `logging-revamped search [PATTERN]` | ログのディレクトリを grep し、fzf で一致を選ぶと、その行をページャーで開きます |
+| `logging-revamped copy` | 圧縮されていない最新のログを tmux のバッファと端末のクリップボードに読み込みます |
+| `logging-revamped compress` | どのペインも書き込んでいないログすべてに `gzip` を実行します |
+| `logging-revamped prune` | 保持期間のオプションに従い、日数または件数でログを削除します |
+| `logging-revamped status` | このペインの表示文字を出力します |
+| `logging-revamped doctor` | 依存関係ごとに 1 行。ログのフォルダー、gzip、fzf、触れなかったキーも含みます |
+| `logging-revamped version` | バージョンと tmux のバージョン |
+| `logging-revamped help` | ヘルプ。`man logging-revamped` にも同じコマンドと設定があります |
+| `logging-revamped` | 端末ではメニュー |
 
-## 設定
-
-### 動作
+ファイル名は、セッション、ウィンドウ、ペイン、`YYYYmmdd-HHMMSS` 形式のタイムスタンプ、種類から作られます。例：`tmux-main-1-0-20260622-143005.history`。各部分は英数字、`.`、`_`、`-` だけに変換されるため、`feature/login` という名前のセッションでもログのディレクトリの外に出ません。
 
 | オプション | 既定値 | 意味 |
 |:-----------|:-------|:-----|
@@ -129,8 +130,6 @@ set -g @logging_revamped_output_only '1'
 | `@logging_revamped_pager` | `less` | 検索の一致を開くページャー。`<pager> +<line> -- <file>` の形で呼び出します |
 | `@logging_revamped_status_on` | `*` | アクティブなペインのログを記録している間に `#{logging_status}` が表示する文字列 |
 | `@logging_revamped_status_off` | 空 | それ以外のときに `#{logging_status}` が表示する文字列 |
-
-### キー
 
 各キーのオプションには tmux のキー名を指定します。空の値または `off` では何も割り当てません。
 
@@ -148,69 +147,115 @@ set -g @logging_revamped_output_only '1'
 
 コピー、圧縮、削除、診断にはキーのオプションがなく、メニューから使います。
 
-### 内部状態
+どのオプションも、ダッシュ区切りのコマンドオプション（例 `--path ~/logs`）と環境変数（例 `LOGGING_REVAMPED_PATH`）で指定できます。優先順位はコマンドライン、環境変数、tmux オプションの順です。空の tmux オプションは既定値を意味します。`doctor` は、プラグインが認識できない値を持つ設定の名前を表示します。`apply` に渡したものは、すべての割り当てに引き継がれます。
 
-以下のオプションはプラグイン自身が書き込みます。設定しないでください。
+プラグイン自身が書き込むオプションは 3 つです。ペインのオプション `@logging_revamped_file` は記録中のペインが書き込むファイルで、グローバルの `@logging_revamped_prompt` と `@logging_revamped_search_pattern` は入力された返答をツールに渡します。
 
-| オプション | 保持する内容 |
-|:-----------|:-------------|
-| `@logging_revamped_file_<pane>` | ライブログを記録中のペインが書き込むファイル。キーはペイン ID で、英数字以外の文字は `_` に置き換えます。例：`%3` は `_3` |
-| `@logging_revamped_search_pattern` | 検索のプロンプトから選択用のポップアップに渡す検索パターン |
-| `@logging_revamped_prompt` | ラベルまたは検索のプロンプトに入力した文字列。1 回読み取った後に削除します |
-| `@logging_status` | 現在のステータスの文字列。`src/logging.sh status` を実行したときだけ書き込まれ、ステータスラインはこれを読みません |
-
-<a id="key-bindings"></a>
-
-## キーバインド
-
-| キー | 操作 | 既定 |
-|:-----|:-----|:-----|
-| `prefix + M-l` | ログのメニュー | 割り当て済み |
-| `@logging_revamped_<action>_key` | キーの表にある操作 | 未割り当て |
-
-バージョン 2.0.0 でメニューは `M-m` から `M-l` に移り、ほかのキーはすべて割り当てが解除されました。以前の配置に戻すには次のように設定します。
-
-```tmux
-set -g @logging_revamped_menu_key 'M-m'
-set -g @logging_revamped_toggle_key 'P'
-set -g @logging_revamped_save_key 'M-p'
-set -g @logging_revamped_screenshot_key 'M-P'
-set -g @logging_revamped_label_key 'M-n'
-set -g @logging_revamped_window_key 'M-w'
-set -g @logging_revamped_clear_key 'M-c'
-set -g @logging_revamped_tail_key 'M-t'
-set -g @logging_revamped_search_key 'M-f'
-```
-
-<a id="how-it-works"></a>
+<a id="仕組み"></a>
 
 ## 仕組み
 
-tmux がプラグインを読み込むと、[`logging-revamped.tmux`](logging-revamped.tmux) が 1 回実行されます。設定された各キーを、[`src/logging.sh`](src/logging.sh) と操作名を渡す `run-shell` に割り当てるため、キーを押すまで何も実行されません。
+[`logging-revamped.tmux`](logging-revamped.tmux) は、tmux がプラグインを読み込むときに `bin/logging-revamped apply` を一度実行します。設定した各キーを、ツールとアクション名を付けた `run-shell` に、メニューのキーをメニューそのものに、1 回の tmux 呼び出しで割り当てます。キーを押すまで何も実行されません。
 
 また、`status-left` と `status-right` の `#{logging_status}` を、2 つのステータスのオプションから作った `#{?pane_pipe,on,off}` 形式に置き換えます。この形式は tmux 自身が描画するため、再描画のたびにプロセスを起動することはありません。ステータスのオプションはプラグインの読み込み前に設定するか、変更後に設定を再読み込みしてください。
 
 ライブログは、umask 077 のもとでファイルに `cat >>` を実行する `pipe-pane` です。スクロールバックと画面の保存は `capture-pane` を使い、各行の末尾の空白を取り除きます。ラベルと検索のプロンプトは入力した文字列を `%%%` 経由でプラグインのオプションに渡すため、入力に含まれる引用符や `#()` がシェルや tmux の形式に届くことはありません。
 
-ファイル名の生成、パスの展開、削除対象の選択は [`src/lib/logging/logging.sh`](src/lib/logging/logging.sh) の純粋な関数です。診断の出力は [`src/lib/logging/doctor.sh`](src/lib/logging/doctor.sh) にあります。
+<a id="画面"></a>
 
-<a id="development"></a>
+## 画面
+
+<details>
+<summary>すべての画面。本物の tmux の中で <code>make screens</code> で録画し、押したキーをステータスラインに表示しています</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/logging-menu.png" alt="logging-revamped: prefix M-l でログのメニューを開く"><br><sub><code>prefix M-l</code> でログのメニューを開く。<code>hero.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/live.png" alt="logging-revamped: ライブログが始まり、ステータスラインに表示される"><br><sub>ライブログが始まり、ステータスラインに表示される。<code>hero.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/tail.png" alt="logging-revamped: prefix M-t でライブログをポップアップで追う"><br><sub><code>prefix M-t</code> でライブログをポップアップで追う。<code>hero.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/saved.png" alt="logging-revamped: save がラベル付きでスクロールバックを保存する"><br><sub><code>save</code> がラベル付きでスクロールバックを保存する。<code>hero.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="logging-revamped: メニュー"><br><sub>メニュー。<code>hero.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="logging-revamped: doctor"><br><sub><code>doctor</code>。<code>hero.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/label.png" alt="logging-revamped: ラベルのキーがラベルを尋ねる"><br><sub>ラベルのキーがラベルを尋ねる。<code>keys.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/search.png" alt="logging-revamped: 検索のキーが一致をすべて並べる"><br><sub>検索のキーが一致をすべて並べる。<code>keys.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/match.png" alt="logging-revamped: 選んだ一致がページャーでその行に開く"><br><sub>選んだ一致がページャーでその行に開く。<code>keys.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/window.png" alt="logging-revamped: ウィンドウのキーがすべてのペインを記録する"><br><sub>ウィンドウのキーがすべてのペインを記録する。<code>keys.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/screenshot.png" alt="logging-revamped: メニューからの画面の保存"><br><sub>メニューからの画面の保存。<code>keys.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/clear.png" alt="logging-revamped: メニューからの履歴の消去"><br><sub>メニューからの履歴の消去。<code>keys.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/copy.png" alt="logging-revamped: メニューからの最新ログのコピー"><br><sub>メニューからの最新ログのコピー。<code>keys.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/compress.png" alt="logging-revamped: メニューからのログの圧縮"><br><sub>メニューからのログの圧縮。<code>keys.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/prune.png" alt="logging-revamped: メニューからの古いログの削除"><br><sub>メニューからの古いログの削除。<code>keys.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/list.png" alt="logging-revamped: list がすべての割り当てを表示する"><br><sub><code>list</code> がすべての割り当てを表示する。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/status.png" alt="logging-revamped: status"><br><sub><code>status</code>。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/plain-menu.png" alt="logging-revamped: gum なしのメニュー"><br><sub>gum なしのメニュー。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/plain-doctor.png" alt="logging-revamped: メニューからの doctor"><br><sub>メニューからの <code>doctor</code>。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/version.png" alt="logging-revamped: バージョン"><br><sub>バージョン。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/error.png" alt="logging-revamped: 不明なコマンド"><br><sub>不明なコマンド。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="logging-revamped: 6 つのテーマのヘッダー"><br><sub>6 つのテーマのヘッダー。<code>themes.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help.png" alt="logging-revamped: ヘルプ"><br><sub>ヘルプ。<code>help.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/accent.png" alt="logging-revamped: LOGGING_REVAMPED_ACCENT によるアクセント"><br><sub><code>LOGGING_REVAMPED_ACCENT</code> によるアクセント。<code>stills.tape</code>より</sub></td>
+</tr>
+</table>
+
+</details>
+
+## 移植性
+
+プラグインは POSIX `sh` です。CI は下の各行ですべてのテストを実行します。
+
+| シェル | 状態 |
+|:------|:-------|
+| `dash`、macOS の `/bin/sh` | 対応 |
+| `bash` 3.2 と 5.x、システムの `zsh` と Homebrew の `zsh` | 対応 |
+
+| システム | 状態 |
+|:-------|:-------|
+| macOS | Apple Silicon と Intel の Tahoe。付属のツール、Homebrew の GNU ツール、Homebrew の uutils で確認 |
+| Linux | x86_64 と arm64 の Ubuntu 26.04。GNU coreutils、uutils、BusyBox で確認 |
 
 ## 開発
 
-| コマンド | 内容 |
-|:---------|:-----|
-| `make test` | bats のテストスイートを実行します |
-| `make lint` | すべてのシェルファイルに shellcheck を実行します |
-| `make coverage` | Linux で kcov を使って行カバレッジを測定し、95% 未満なら失敗します |
+| コマンド | 実行内容 |
+|:--------|:-------------|
+| `make fmt` | すべてのスクリプトに shfmt `-i 2` をかけます |
+| `make lint` | shfmt、ShellCheck、mandoc、yamllint、actionlint を、指摘ゼロで通します |
+| `make test` | システムの `sh` で bats のテスト |
+| `make test-all` | インストール済みのすべてのシェルでテスト。macOS では bash と zsh の両方のビルドを含みます |
+| `make test-linux` | Ubuntu のコンテナでテスト |
+| `make coverage` | この Mac と Ubuntu のコンテナで bashcov を実行し、合算して 100 パーセントで判定します |
+| `make screens` | 上の画面を、本物のプラグインから tmux の中で VHS で録画します。macOS で実行します |
+| `make install` | コマンド、manページ、補完を `PREFIX` の下に置きます |
 
-変更点は [CHANGELOG.md](CHANGELOG.md) にあります。
+macOS では、`brew bundle` を実行すると、これらのターゲットが使うツールがすべて [`Brewfile`](Brewfile) からインストールされます。
 
-<a id="license"></a>
+コミットは Conventional Commits の形式に従い、そのまま `main` に入ります。`main` で `ci` が成功すると、`release.yml` が semantic-release を実行します。前回のタグ以降に `feat` か `fix` があればリリースを公開し、バージョン定数を更新し、変更内容を [`CHANGELOG.md`](CHANGELOG.md) に追加します。
 
 ## ライセンス
 
-[MIT](LICENSE)
+[MIT](LICENSE)、copyright Gustavo Franco。
 
 <!-- family:begin -->
 

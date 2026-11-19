@@ -1,114 +1,84 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2016,SC2030,SC2031,SC2034,SC2154
 
-setup() {
-  ENTRY_OPTS="${BATS_TEST_TMPDIR}/opts"
-  mkdir -p "${ENTRY_OPTS}"
-  export ENTRY_OPTS
-  tmux() {
-    local verb="${1}"
-    shift
-    case "${verb}" in
-      show-option) [[ -f "${ENTRY_OPTS}/${*: -1}" ]] && cat "${ENTRY_OPTS}/${*: -1}"; return 0 ;;
-      set-option) printf '%s' "${3}" > "${ENTRY_OPTS}/${2}" ;;
-      bind-key) echo "${1}" >> "${ENTRY_OPTS}/bindings" ;;
-      *) return 0 ;;
-    esac
-  }
-  export -f tmux
-  ENTRY="${BATS_TEST_DIRNAME}/../logging-revamped.tmux"
-}
+# shellcheck source=test/server_helpers.bash
+source "${BATS_TEST_DIRNAME:-.}/server_helpers.bash"
 
-@test "entrypoint - the status placeholder becomes a pane_pipe format with no shell job" {
+bats_require_minimum_version 1.5.0
+
+@test "entrypoint - git tracks the entry point and the tool as executable" {
   # Arrange
-  printf '%s' '#{logging_status} %H:%M' > "${ENTRY_OPTS}/status-right"
+  local modes
 
   # Act
-  run bash "${ENTRY}"
+  modes=$(git -C "${ROOT}" ls-files --stage -- logging-revamped.tmux bin/logging-revamped)
 
   # Assert
-  [[ "$(cat "${ENTRY_OPTS}/status-right")" != *"#("* ]] || false
-  [[ "$(cat "${ENTRY_OPTS}/status-right")" == '#{?pane_pipe,*,} %H:%M' ]]
+  run awk '$1 != "100755" { bad++ } END { print NR ":" bad + 0 }' <<<"${modes}"
+  [[ "${output}" == "2:0" ]]
 }
 
-@test "entrypoint - custom glyphs keep commas and ampersands literal" {
+@test "entrypoint - loading binds the menu key and turns the placeholder into a format" {
   # Arrange
-  printf '%s' '#{logging_status}' > "${ENTRY_OPTS}/status-left"
-  printf '%s' '#[fg=red,bold]REC&' > "${ENTRY_OPTS}/@logging_revamped_status_on"
-  printf '%s' 'idle' > "${ENTRY_OPTS}/@logging_revamped_status_off"
+  local keys
+  tmux set-option -g status-right '#{logging_status} end'
 
   # Act
-  run bash "${ENTRY}"
+  load_plugin
 
   # Assert
-  [[ "$(cat "${ENTRY_OPTS}/status-left")" == '#{?pane_pipe,#[fg=red#,bold]REC&,idle}' ]]
+  keys=$(prefix_keys)
+  run grep -c -x 'M-l' <<<"${keys}"
+  [[ "${output}" == "1" ]]
+  run tmux show-option -gqv status-right
+  [[ "${output}" == '#{?pane_pipe,*,} end' ]]
 }
 
-@test "entrypoint - a line without the placeholder is left unchanged" {
+@test "entrypoint - loading twice changes nothing" {
   # Arrange
-  printf '%s' '%H:%M' > "${ENTRY_OPTS}/status-right"
+  local before after
+  tmux set-option -g status-right '#{logging_status} end'
+  setting toggle_key L
+  load_plugin
+  before=$(everything)
 
   # Act
-  run bash "${ENTRY}"
+  load_plugin
 
   # Assert
-  [[ "$(cat "${ENTRY_OPTS}/status-right")" == '%H:%M' ]]
+  after=$(everything)
+  [[ "${after}" == "${before}" ]]
 }
 
-@test "entrypoint - only the menu is bound by default, on M-l" {
-  # Act
-  run bash "${ENTRY}"
-
-  # Assert
-  [[ "$(cat "${ENTRY_OPTS}/bindings")" == "M-l" ]]
-}
-
-@test "entrypoint - the toggle and every other action stay unbound by default" {
-  # Act
-  run bash "${ENTRY}"
-
-  # Assert
-  [[ "$(cat "${ENTRY_OPTS}/bindings")" != *"P"* ]] || false
-  [[ "$(cat "${ENTRY_OPTS}/bindings")" != *"M-p"* ]]
-}
-
-@test "entrypoint - a set action key binds that action" {
+@test "entrypoint - the indicator shows on the status line only while the pane is logged" {
   # Arrange
-  printf '%s' 'P' > "${ENTRY_OPTS}/@logging_revamped_toggle_key"
+  tmux set-option -g status-right 'log[#{logging_status}]'
+  tmux set-option -g status-interval 1
+  setting status_on REC
+  setting toggle_key L
+  load_plugin
+  wait_for host_shows 'log[]'
 
   # Act
-  run bash "${ENTRY}"
+  press C-b L
 
   # Assert
-  [[ "$(cat "${ENTRY_OPTS}/bindings")" == "P"$'\n'"M-l" ]]
+  wait_for host_shows 'log[REC]'
 }
 
-@test "entrypoint - a menu key of off binds nothing" {
+@test "entrypoint - a checkout path with a space, a quote and a hash still logs from its key" {
   # Arrange
-  printf '%s' 'off' > "${ENTRY_OPTS}/@logging_revamped_menu_key"
+  local copy="${BATS_TEST_TMPDIR}/it's #1 dir"
+  mkdir -p "${copy}"
+  cp -Rf "${ROOT}/bin" "${ROOT}/lib" "${ROOT}/logging-revamped.tmux" "${copy}/"
+  setting toggle_key L
+  load_plugin "${copy}"
 
   # Act
-  run bash "${ENTRY}"
+  press C-b L
 
   # Assert
-  [[ ! -f "${ENTRY_OPTS}/bindings" ]]
-}
-
-@test "entrypoint - the bound command runs the plugin from a path with a space and a quote" {
-  # Arrange
-  local root="${BATS_TEST_TMPDIR}/it's a dir"
-  mkdir -p "${root}/src"
-  cp "${ENTRY}" "${root}/logging-revamped.tmux"
-  printf '#!/bin/sh\nprintf %%s "$1" > "$RAN_FILE"\n' > "${root}/src/logging.sh"
-  RAN_FILE="${BATS_TEST_TMPDIR}/ran"
-  export RAN_FILE
-  tmux() { [[ "${1}" == "bind-key" ]] && printf '%s' "${4}" > "${ENTRY_OPTS}/bound"; return 0; }
-  export -f tmux
-  bash "${root}/logging-revamped.tmux"
-
-  # Act
-  run sh -c "$(cat "${ENTRY_OPTS}/bound")"
-
-  # Assert
-  [ "${status}" -eq 0 ]
-  [[ "$(cat "${RAN_FILE}")" == "menu" ]]
+  wait_for shows %0 '#{pane_pipe}' 1
+  says from-a-strange-path
+  wait_for log_holds log from-a-strange-path
 }

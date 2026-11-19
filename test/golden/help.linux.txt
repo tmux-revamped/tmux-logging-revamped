@@ -1,0 +1,78 @@
+$ logging-revamped help
+logging-revamped - capture a tmux pane to a file: live, scrollback or screen
+
+usage:
+  logging-revamped apply            bind the keys and the status indicator now
+  logging-revamped list             print every command apply would send
+  logging-revamped toggle           start or stop the live log of this pane
+  logging-revamped save [LABEL]     save the whole scrollback to a file
+  logging-revamped screenshot [LABEL]
+                                    save what the pane shows now
+  logging-revamped label            ask for a label, then save the scrollback
+  logging-revamped window           start a live log in every pane of this
+                                    window
+  logging-revamped clear            clear this pane's history
+  logging-revamped tail             follow this pane's live log in a popup
+  logging-revamped search [PATTERN] find a pattern in the logs and open a match
+  logging-revamped copy             copy the newest log to the clipboard
+  logging-revamped compress         gzip every log no pane is writing
+  logging-revamped prune            delete logs past the retention settings
+  logging-revamped status           print the indicator for this pane
+  logging-revamped doctor           check this machine
+  logging-revamped version          print the version
+  logging-revamped help             print this page
+
+options:
+  --json           list prints one JSON object
+  --theme NAME     the look: kodougu, catppuccin-mocha, catppuccin-latte,
+                   dracula, nord, gruvbox, tokyo-night or mono
+  --SETTING VALUE  any tmux option below, named with dashes, such as
+                   --path ~<path> or --rolling 1
+
+environment:
+  LOGGING_REVAMPED_SETTING  any tmux option below in capitals, such as
+                            LOGGING_REVAMPED_PATH
+  LOGGING_REVAMPED_THEME    the look, when --theme is not given
+  LOGGING_REVAMPED_ACCENT   a colour such as #CBA6F7 for the accent
+  KODOUGU_THEME             the family look, when neither is given
+  KODOUGU_ACCENT            the family accent, when the tool's is unset
+  NO_COLOR                  turn colour off
+
+tmux options:
+  @logging_revamped_menu_key        key of the logging menu (M-l)
+  @logging_revamped_toggle_key      key that starts or stops a live log (none)
+  @logging_revamped_save_key        key that saves the scrollback (none)
+  @logging_revamped_screenshot_key  key that saves the screen (none)
+  @logging_revamped_label_key       key that asks for a label and saves (none)
+  @logging_revamped_window_key      key that logs the whole window (none)
+  @logging_revamped_clear_key       key that clears the history (none)
+  @logging_revamped_tail_key        key that follows the live log (none)
+  @logging_revamped_search_key      key that searches the logs (none)
+  @logging_revamped_path            folder of the logs (~<path>
+  @logging_revamped_rolling         1 keeps one live log per session (0)
+  @logging_revamped_color           1 keeps colours in saved files (0)
+  @logging_revamped_output_only     1 drops prompt lines from saved files (0)
+  @logging_revamped_prompt_pattern  what a prompt line looks like, an
+                                    extended regular expression (a line
+                                    starting with #, $, % or >)
+  @logging_revamped_pager           what opens a search match (less)
+  @logging_revamped_retain_days     prune logs older than this many days (0)
+  @logging_revamped_retain_max      prune the oldest logs beyond this many (0)
+  @logging_revamped_status_on       what #{logging_status} shows while a pane
+                                    is logged (*)
+  @logging_revamped_status_off      what it shows otherwise (nothing)
+  @revamped_theme                   the family look (kodougu)
+
+notes:
+  The entry point runs apply once when tmux loads the plugin. A key set to off
+  binds nothing, and a key someone else holds is left alone and named by
+  doctor. #{logging_status} in status-left or status-right becomes a format
+  tmux draws itself, so the indicator starts no process. A live log is never
+  compressed or pruned while its pane writes it.
+
+examples:
+  logging-revamped toggle
+  logging-revamped save before-deploy
+  logging-revamped --retain-days 30 prune
+  logging-revamped doctor
+exit 0

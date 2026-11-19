@@ -1,0 +1,54 @@
+#compdef logging-revamped
+
+_logging_revamped() {
+  local -a commands
+  commands=(
+    'apply:bind the keys and the status indicator now'
+    'list:print every command apply would send'
+    'toggle:start or stop the live log of this pane'
+    'save:save the whole scrollback to a file'
+    'screenshot:save what the pane shows now'
+    'label:ask for a label, then save the scrollback'
+    'window:start a live log in every pane of this window'
+    'clear:clear this pane'\''s history'
+    'tail:follow this pane'\''s live log in a popup'
+    'search:find a pattern in the logs and open a match'
+    'copy:copy the newest log to the clipboard'
+    'compress:gzip every log no pane is writing'
+    'prune:delete logs past the retention settings'
+    'status:print the indicator for this pane'
+    'doctor:check this machine'
+    'version:print the version'
+    'help:print the help page'
+  )
+
+  _arguments \
+    '--json[list prints one JSON object]' \
+    '--theme[colours of the terminal interface]:theme:(kodougu catppuccin-mocha catppuccin-latte dracula nord gruvbox tokyo-night mono)' \
+    '--menu-key[key of the logging menu]:value:' \
+    '--toggle-key[key that starts or stops a live log]:value:' \
+    '--save-key[key that saves the scrollback]:value:' \
+    '--screenshot-key[key that saves the screen]:value:' \
+    '--label-key[key that asks for a label and saves]:value:' \
+    '--window-key[key that logs the whole window]:value:' \
+    '--clear-key[key that clears the history]:value:' \
+    '--tail-key[key that follows the live log]:value:' \
+    '--search-key[key that searches the logs]:value:' \
+    '--path[folder of the logs]:value:' \
+    '--rolling[one live log per session]:value:(0 1)' \
+    '--color[keep colours in saved files]:value:(0 1)' \
+    '--output-only[drop prompt lines from saved files]:value:(0 1)' \
+    '--prompt-pattern[what a prompt line looks like]:value:' \
+    '--pager[what opens a search match]:value:' \
+    '--retain-days[prune logs older than this many days]:value:' \
+    '--retain-max[prune the oldest logs beyond this many]:value:' \
+    '--status-on[indicator while a pane is logged]:value:' \
+    '--status-off[indicator otherwise]:value:' \
+    '1:command:->command'
+
+  if [[ "${state}" == command ]]; then
+    _describe 'command' commands
+  fi
+}
+
+_logging_revamped "$@"
