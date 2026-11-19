@@ -1,5 +1,21 @@
 # Changelog
 
+# [3.0.0](https://github.com/tmux-revamped/tmux-logging-revamped/compare/v2.0.2...v3.0.0) (2026-11-19)
+
+
+* feat!: rewrite the plugin in POSIX sh ([fd48f30](https://github.com/tmux-revamped/tmux-logging-revamped/commit/fd48f30f41cb7dc84e1bd40efe306eb039fd0df7))
+
+
+### BREAKING CHANGES
+
+* the script moved from src/logging.sh to
+bin/logging-revamped. A pane's log file is the pane option
+@logging_revamped_file, where it was the global option
+@logging_revamped_file_<pane>. @logging_status is no longer written. The
+internal commands label_reply and search_reply are label-reply and
+search-reply. bash is no longer required. A tmux option set to nothing
+now means its default, where it used to stay empty.
+
 All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
